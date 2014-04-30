@@ -1,0 +1,70 @@
+<html>
+
+<head>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+  
+  <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+  
+  <link rel="stylesheet" href="common.css">
+  <link rel="stylesheet" href="diagram.css">
+  <link rel="stylesheet" href="editor.css">
+  
+  <script src="editor.js"></script>
+</head>
+<body>
+
+<div id="diagram">
+  <tj-class>
+    <tj-name>Test</tj-name>
+    <tj-properties>
+      <tj-property>
+        <tj-name>foo</tj-name><tj-type>number</tj-type>
+      </tj-property>
+    </tj-properties>
+    <tj-methods>
+      <tj-method>
+        <tj-name>bar</tj-name>
+        <tj-params><tj-param><tj-name>baz</tj-name><tj-type>number</tj-type></tj-param></tj-params><tj-type>number</tj-type>
+        <tj-body>xxx</tj-body>
+      </tj-method>
+    </tj-methods>
+  </tj-class>
+</div>
+
+
+<div id="templates">
+  <tj-class id="class-template">
+      <tj-name>
+      </tj-name>
+      <tj-properties>
+      </tj-properties>
+      <tj-methods>
+      </tj-methods>
+  </tj-class>
+</div>
+
+<div id="dialogs">
+    
+  <tj-dialog id="class-dialog" title="Class">
+    <table>
+       <tr><th>Name: </th><td><input id="class-editor-name"></td></tr>
+    <!--   <tr><th>Extends: </th><td><input id="class-editor-extends"></td></tr> -->
+    </table>
+  </tj-dialog>
+
+  <tj-dialog id="property-dialog" title="Property">
+    <table>
+       <tr><th>Name: </th><td><input id="property-editor-name"></td></tr>
+       <tr><th>Type: </th><td><input id="property-editor-type"></td></tr>
+    </table>
+  </tj-dialog>
+
+</div>
+
+<script src="editor.js"></script>
+<script>
+
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+#diagram {
+    height: 100%;
+}
+
+#diagram tj-class {
+  background-color: orange;
+  display: block;
+  border: solid 1px black;
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  max-width: 300px;
+  min-width: 100px;
+  white-space: nowrap;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+}
+
+#diagram tj-class>tj-name {
+  padding: 8px;
+  text-align: center;
+  display: block;
+  font-weight: bold;
+}
+
+#diagram tj-properties {
+  padding: 8px;
+  display: block;
+  border-top: solid 1px black;
+  border-bottom: solid 1px black;
+}
+
+#diagram tj-methods {
+  padding: 8px;
+  display: block;
+}
+
+#diagram tj-method {
+  display: block;
+}
+
+#diagram tj-type:before {
+  content: ": ";
+}
+
+#diagram tj-params:before {
+  content: " (";
+}
+
+#diagram tj-params:after {
+  content: ")";
+}
+
+#diagram tj-body {
+  display: none;
+}
