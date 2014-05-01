@@ -1,28 +1,42 @@
-
-function openPropertyDialog(element) {
-    var artifact = $(element);
-    document.getElementById("property-editor-name").setAttribute("value", artifact.children("tj-name").text());
-    document.getElementById("property-editor-type").setAttribute("value", artifact.children("tj-type").text());
-    $("#property-dialog").dialog('open');
-}
-
-function openClassDialog(element) {
-    var artifact = $(element);
-    document.getElementById("class-editor-name").setAttribute("value", artifact.children("tj-name").text());
-    window.currentClass = element;
-    $("#class-dialog").dialog('open');
-}
-
+var state = {
+    currentProperty: null,
+    currentClass: null
+};
 
 function addClass(x, y) {
-    var newClass = document.getElementById("class-template").cloneNode(true);
-    newClass.removeAttribute("id");
+    var newClass = $("#templates tj-class").get(0).cloneNode(true);
     $(newClass).draggable(); // 
     newClass.style.position = "absolute";
     newClass.style.top = y + "px";
     newClass.style.left = x + "px";
     
     document.getElementById("diagram").appendChild(newClass);
+}
+
+function openClassDialog(element) {
+    state.currentClass = element;
+    var q = $(element);
+    $("#class-editor-name").val(q.children("tj-name").text());
+    $("#class-dialog").dialog('open');
+}
+
+function openPropertyDialog(element) {
+    state.currentProperty = element;
+    var q = $(element);
+    $("#property-editor-name").val(q.children("tj-name").text());
+    $("#property-editor-type").val(q.children("tj-type").text());
+    $("#property-dialog").dialog('open');
+}
+
+function saveClass() {
+    var q = $(state.currentClass);
+    q.children("tj-name").text($("#class-editor-name").val());
+}
+
+function saveProperty() {
+    var q = $(state.currentProperty);
+    q.children("tj-name").text($("#property-editor-name").val());
+    q.children("tj-type").text($("#property-editor-type").val());
 }
 
 $("tj-class").draggable();
@@ -33,7 +47,8 @@ $("#property-dialog").dialog({
         'Cancel': function() {
             $("#property-dialog").dialog('close');
         },
-        'Ok': function() {
+        'Save': function() {
+            saveProperty();
             $("#property-dialog").dialog('close');
         }
     }
@@ -50,13 +65,14 @@ $("#class-dialog").dialog({
             $(this).dialog("close");
         },
         'Delete': function(event) {
-            window.currentClass.parentNode.removeChild(window.currentClass);
+            state.currentClass.parentNode.removeChild(state.currentClass);
             $(this).dialog("close");
         },
         'Cancel': function() {
             $(this).dialog("close");
         },
         'Save': function() {
+            saveClass();
             $(this).dialog("close");
         }
     }
