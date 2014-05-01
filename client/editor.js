@@ -9,8 +9,7 @@ function addClass(x, y) {
     newClass.style.position = "absolute";
     newClass.style.top = y + "px";
     newClass.style.left = x + "px";
-    
-    document.getElementById("diagram").appendChild(newClass);
+    openClassDialog(newClass);
 }
 
 function openClassDialog(element) {
@@ -31,6 +30,9 @@ function openPropertyDialog(element) {
 function saveClass() {
     var q = $(state.currentClass);
     q.children("tj-name").text($("#class-editor-name").val());
+    if (state.currentClass.parentNode == null) {
+        document.getElementById("diagram").appendChild(state.currentClass);
+    }
 }
 
 function saveProperty() {
@@ -59,13 +61,18 @@ $("#class-dialog").dialog({
     modal: true,
     buttons: {
         'Add Property': function(event) {
+            saveClass();
             $(this).dialog("close");
         },
         'Add Method': function(event) {
+            saveClass();
             $(this).dialog("close");
         },
         'Delete': function(event) {
-            state.currentClass.parentNode.removeChild(state.currentClass);
+            var parent = state.currentClass.parentNode;
+            if (parent != null) {
+                parent.removeChild(state.currentClass);
+            }
             $(this).dialog("close");
         },
         'Cancel': function() {
