@@ -12,24 +12,37 @@ function addClass(x, y) {
     openClassDialog(newClass);
 }
 
-function openClassDialog(element) {
-    state.currentClass = element;
-    var q = $(element);
-    $("#class-editor-name").val(q.children("tj-name").text());
+function addProperty(classElement) {
+    var newProperty = $("#templates tj-property").get(0).cloneNode(true);
+    openPropertyDialog(newProperty);
+}
+
+function openClassDialog(classElement) {
+    state.currentClass = classElement;
+    var q = $(classElement);
+    $("#class-dialog-name").val(q.children("tj-name").text());
     $("#class-dialog").dialog('open');
 }
 
-function openPropertyDialog(element) {
-    state.currentProperty = element;
-    var q = $(element);
-    $("#property-editor-name").val(q.children("tj-name").text());
-    $("#property-editor-type").val(q.children("tj-type").text());
+function openPropertyDialog(propertyElement) {
+    state.currentProperty = propertyElement;
+    var q = $(propertyElement);
+    $("#property-dialog-name").val(q.children("tj-name").text());
+    $("#property-dialog-type").val(q.children("tj-type").text());
     $("#property-dialog").dialog('open');
+}
+
+function openMethodDialog(methodElement) {
+    state.currentMethod = methodElement;
+    var q = $(methodElement);
+    $("#method-dialog-name").val(q.children("tj-name").text());
+    $("#method-dialog-type").val(q.children("tj-type").text());
+    $("#method-dialog").dialog('open');
 }
 
 function saveClass() {
     var q = $(state.currentClass);
-    q.children("tj-name").text($("#class-editor-name").val());
+    q.children("tj-name").text($("#class-dialog-name").val());
     if (state.currentClass.parentNode == null) {
         document.getElementById("diagram").appendChild(state.currentClass);
     }
@@ -37,8 +50,11 @@ function saveClass() {
 
 function saveProperty() {
     var q = $(state.currentProperty);
-    q.children("tj-name").text($("#property-editor-name").val());
-    q.children("tj-type").text($("#property-editor-type").val());
+    q.children("tj-name").text($("#property-dialog-name").val());
+    q.children("tj-type").text($("#property-dialog-type").val());
+    if (state.currentProperty.parentNode == null) {
+        $(state.currentClass).children("tj-properties").get(0).appendChild(state.currentProperty);
+    }
 }
 
 $("tj-class").draggable();
@@ -63,6 +79,7 @@ $("#class-dialog").dialog({
         'Add Property': function(event) {
             saveClass();
             $(this).dialog("close");
+            addProperty(state.currentClass);
         },
         'Add Method': function(event) {
             saveClass();

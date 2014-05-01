@@ -2,3 +2,7 @@
 #property-editor th {
   text-align: right;
 }
+
+#templates {
+  display: none;
+}
