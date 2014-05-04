@@ -17,6 +17,11 @@ function addProperty(classElement) {
     openPropertyDialog(newProperty);
 }
 
+function addMethod(classElement) {
+    var newMethod = $("#templates tj-method").get(0).cloneNode(true);
+    openMethodDialog(newMethod);
+}
+
 function openClassDialog(classElement) {
     state.currentClass = classElement;
     var q = $(classElement);
@@ -29,6 +34,7 @@ function openPropertyDialog(propertyElement) {
     var q = $(propertyElement);
     $("#property-dialog-name").val(q.children("tj-name").text());
     $("#property-dialog-type").val(q.children("tj-type").text());
+    $("#property-dialog-static").val(q.hasClass("static"));
     $("#property-dialog").dialog('open');
 }
 
@@ -37,6 +43,20 @@ function openMethodDialog(methodElement) {
     var q = $(methodElement);
     $("#method-dialog-name").val(q.children("tj-name").text());
     $("#method-dialog-type").val(q.children("tj-type").text());
+    $("#method-dialog-body").text(q.children("tj-body").text());
+    $("#method-dialog-static").val(q.hasClass("static"));
+
+    var tbody = $("#method-dialog-params");
+    tbody.empty();
+    var n = 1;
+    q.find("tj-param").each(function() {
+        tbody.append("<tr class='horizontal'>" +
+            "<th>Par." + n++ + ":" +
+            "<td><input value='" + $(this).children("tj-name").text() + "'></input></td>" +
+            "<td><input value='" + $(this).children("tj-type").text() + "'></input></td>" +
+            "</tr>");
+    });
+
     $("#method-dialog").dialog('open');
 }
 
@@ -46,14 +66,38 @@ function saveClass() {
     if (state.currentClass.parentNode == null) {
         document.getElementById("diagram").appendChild(state.currentClass);
     }
+    loadClass(state.currentClass);
 }
 
 function saveProperty() {
     var q = $(state.currentProperty);
     q.children("tj-name").text($("#property-dialog-name").val());
     q.children("tj-type").text($("#property-dialog-type").val());
+    if ($("#property-dialog-static").is(':checked')) {
+        q.addClass("static");
+    } else {
+        q.removeClass("static");
+    }
+    
     if (state.currentProperty.parentNode == null) {
         $(state.currentClass).children("tj-properties").get(0).appendChild(state.currentProperty);
+    }
+}
+
+function saveMethod() {
+    var q = $(state.currentMethod);
+    q.children("tj-name").text($("#method-dialog-name").val());
+    q.children("tj-type").text($("#method-dialog-type").val());
+    q.children("tj-body").text($("#method-dialog-body").val());
+    
+    if ($("#method-dialog-static").is(':checked')) {
+        q.addClass("static");
+    } else {
+        q.removeClass("static");
+    }
+    
+    if (state.currentMethod.parentNode == null) {
+        $(state.currentClass).children("tj-methods").get(0).appendChild(state.currentMethod);
     }
 }
 
@@ -72,6 +116,20 @@ $("#property-dialog").dialog({
     }
 });
 
+$("#method-dialog").dialog({
+    autoOpen: false,
+    buttons: {
+        'Cancel': function() {
+            $("#method-dialog").dialog('close');
+        },
+        'Save': function() {
+            saveMethod();
+            $("#method-dialog").dialog('close');
+        }
+    }
+});
+
+
 $("#class-dialog").dialog({
     autoOpen: false,
     modal: true,
@@ -84,6 +142,7 @@ $("#class-dialog").dialog({
         'Add Method': function(event) {
             saveClass();
             $(this).dialog("close");
+            addMethod(state.currentClass);
         },
         'Delete': function(event) {
             var parent = state.currentClass.parentNode;
@@ -117,12 +176,16 @@ $("body").click(function (event) {
             if (name == "tj-property") {
                 openPropertyDialog(element);
                 return;
-            } else if (name == "tj-class") {
+            } 
+            if (name == "tj-method") {
+                openMethodDialog(element);
+                return;
+            } 
+            if (name == "tj-class") {
                 openClassDialog(element);
                 return;
-            } else {
-                console.log(event.target.tagName);
-            }
+            } 
+            console.log(event.target.tagName);
         }
         
         element = element.parentNode;

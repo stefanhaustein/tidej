@@ -23,24 +23,22 @@ tj-class>tj-name {
   font-weight: bold;
 }
 
-tj-properties {
+tj-properties, tj-methods {
   padding: 8px;
   display: block;
+}
+
+tj-properties {
   border-top: solid 1px black;
   border-bottom: solid 1px black;
 }
 
-tj-property {
+tj-method, tj-property {
   display: block;
 }
 
-tj-methods {
-  padding: 8px;
-  display: block;
-}
-
-tj-method {
-  display: block;
+tj-property.static, tj-method.static {
+    text-decoration: underline;
 }
 
 tj-type:before {

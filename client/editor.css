@@ -6,3 +6,25 @@
 #templates {
   display: none;
 }
+
+th {
+  text-align: left;
+}
+
+.horizontal th {
+  text-align: right;
+  vertical-align: top;
+  
+}
+
+#method-dialog tj-param {
+    display: table-row;
+}
+
+#method-dialog tj-name {
+    display: table-cell;
+}
+
+#method-dialog tj-type {
+    display: table-cell;
+}

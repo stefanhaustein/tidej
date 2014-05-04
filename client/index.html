@@ -16,7 +16,7 @@
 
 <div id="diagram">
   <tj-class>
-    <tj-name>Test</tj-name>
+    <tj-name>Foo</tj-name>
     <tj-properties>
       <tj-property>
         <tj-name>foo</tj-name><tj-type>number</tj-type>
@@ -24,9 +24,9 @@
     </tj-properties>
     <tj-methods>
       <tj-method>
-        <tj-name>bar</tj-name>
-        <tj-params><tj-param><tj-name>baz</tj-name><tj-type>number</tj-type></tj-param></tj-params><tj-type>number</tj-type>
-        <tj-body>xxx</tj-body>
+        <tj-name>sqr</tj-name>
+        <tj-params><tj-param><tj-name>x</tj-name><tj-type>number</tj-type></tj-param></tj-params><tj-type>number</tj-type>
+        <tj-body>return x*x;</tj-body>
       </tj-method>
     </tj-methods>
   </tj-class>
@@ -56,29 +56,40 @@
 
 <div id="dialogs">
     
-  <div id="class-dialog" title="Class">
-    <table>
-       <tr><th>Name: </th><td><input id="class-dialog-name"></td></tr>
+  <div id="class-dialog" class="dialog" title="Class">
+    <table class="horizontal">
+       <tr><th>Name:</th><td><input id="class-dialog-name"></td></tr>
     <!--   <tr><th>Extends: </th><td><input id="class-editor-extends"></td></tr> -->
     </table>
   </div>
 
-  <div id="property-dialog" title="Property">
-    <table>
+  <div id="property-dialog" class="dialog" title="Property">
+    <table class="horizontal">
        <tr><th>Name:</th><td><input id="property-dialog-name"></td></tr>
        <tr><th>Type:</th><td><input id="property-dialog-type"></td></tr>
+       <tr><th>Static:</th><td><input id="property-dialog-static" type="checkbox"></td></tr>
     </table>
   </div>
 
-  <div id="method-dialog" title="Method">
+  <div id="method-dialog" class="dialog" title="Method">
     <table>
-       <tr><th>Name:</th><td><input id="method-dialog-name"></td></tr>
-       <tr><th>Type:</th><td><input id="method-dialog-type"></td></tr>
+        <tbody>
+            <tr><th></th></th><th>Name</th><th>Type</th></tr>
+            <tr class="horizontal">
+                <th>Method:</th>
+                <td><input id="method-dialog-name"></td>
+                <td><input id="method-dialog-type"></td>
+                <td><input id="method-dialog-static" type="checkbox">Static</td>
+                </tr>
+        </tbody>
+        <tbody id="method-dialog-params"></tbody>
+        <tbody><tr class="horizontal"><th>Body:</th><td colspan="2"><textarea id="method-dialog-body" style="width:100%"></textarea></td></tr></tbody>
     </table>
   </div>
 
 </div>
 
+<script src="runtime.js"></script>
 <script src="editor.js"></script>
 <script>
 
