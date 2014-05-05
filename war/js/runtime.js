@@ -1,4 +1,8 @@
-function loadClass(classElement) {
+var tidej = window.tidej = {};
+
+tidej.runtime = {};
+
+tidej.runtime.loadClass = function(classElement) {
     var classQuery = $(classElement);
     var className = classQuery.children("tj-name").text();
     var methodsQuery = classQuery.find("tj-method");
@@ -40,5 +44,5 @@ function loadClass(classElement) {
         constructor[name] = staticMethods[name];
         console.log("added static method: " + methods[name]);
     }
-    
+    return constructor;
 }

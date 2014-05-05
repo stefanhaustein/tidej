@@ -1,0 +1,40 @@
+<html>
+<head>
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+</head>
+<body>
+<div id="diagram" style="display:none">
+</div>
+
+<script src="js/runtime.js"></script>
+<script src="js/storage.js"></script>
+<script src="http://tidej.net/jssum/src/jssum.js"></script>
+<script>
+function run() {
+	var applicationConstructor = null;
+	$("tj-class").each(function() {
+		var constructor = tidej.runtime.loadClass(this);
+		console.log("loaded: ", constructor);
+		if ($(this).hasClass("application")) {
+			applicationConstructor = constructor;
+		}
+	});
+	
+	if (applicationConstructor == null) {
+		window.alert("Application not found.");
+	}
+	application = new applicationConstructor();
+	console.log("application:", application);
+}
+
+
+load(run);
+
+function update(content) {
+	$("#diagram").html(content);
+	run();
+}
+
+</script>
+</body>
+</html>

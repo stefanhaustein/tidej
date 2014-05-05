@@ -1,14 +1,125 @@
 <html>
+
 <head>
-<title>Beschreibung des Frameset-Inhalts</title>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+  
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+  
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/diagram.css">
+    <link rel="stylesheet" href="css/editor.css">
 </head>
-<frameset  cols="60%,40%">  <!-- Frameset-Definition -->
-  <frame src="editor.html"></frame>
-  <frame src="runtime.html"></frame>
-  <noframes>
-    <body>
-        This site requires frames.
-    </body>
-  </noframes>
-</frameset>
+
+<body>
+
+<iframe id="run" style="float:right;height:100%;width:30%;background-color:#fff;border:0;margin:0;padding:0;border-left:10px solid gray"></iframe>
+
+<div id="control" >
+  <div id="title"><img src="img/logo.png"></img></div>
+  <div><button onclick="save()">Speichern</button></div>
+  <div><button onclick="run()">Starten</button></div>
+</div>
+
+
+<div id="diagram">
+    <tj-class>
+        <tj-name>Foo</tj-name>
+        <tj-properties>
+            <tj-property>
+                <tj-name>foo</tj-name><tj-type>number</tj-type>
+            </tj-property>
+        </tj-properties>
+        <tj-methods>
+            <tj-method>
+                <tj-name>sqr</tj-name>
+                <tj-params><tj-param><tj-name>x</tj-name><tj-type>number</tj-type></tj-param></tj-params><tj-type>number</tj-type>
+                <tj-body>return x*x;</tj-body>
+            </tj-method>
+        </tj-methods>
+    </tj-class>
+</div>
+
+
+<div id="templates">
+    <tj-class>
+        <tj-name></tj-name>
+        <tj-properties></tj-properties>
+        <tj-methods></tj-methods>
+    </tj-class>
+  
+    <tj-property>
+        <tj-name></tj-name><tj-type></tj-type>
+    </tj-property>
+
+    <tj-method>
+        <tj-name></tj-name><tj-params></tj-params><tj-type></tj-type><tj-body></tj-body>
+    </tj-method>
+
+    <tj-param>
+        <tj-name></tj-name><tj-type></tj-type>
+    </tj-param>
+</div>
+
+
+<div id="dialogs">
+    
+    <div id="class-dialog" class="dialog" title="Klasse">
+        <table class="horizontal">
+            <tr><th>Name:</th><td><input id="class-dialog-name"></td></tr>
+            <tr><th>Applikation:</th><td><input id="class-dialog-application" type="checkbox"></td></tr>
+        <!--   <tr><th>Extends: </th><td><input id="class-editor-extends"></td></tr> -->
+            <tr><th></th><td><button style="width:220px;text-align:left" onclick="tidej.editor.addProperty();">Eigenschaft hinzuf&uuml;gen</button><br>
+                             <button style="width:220px;text-align:left" onclick="tidej.editor.addMethod();">Methode hinzuf&uuml;gen</button></td></tr>
+        </table>
+    </div>
+
+    <div id="property-dialog" class="dialog" title="Eigenschaft">
+        <table class="horizontal">
+            <tr><th>Name:</th><td><input id="property-dialog-name"></td></tr>
+            <tr><th>Typ:</th><td><input id="property-dialog-type"></td></tr>
+            <tr><th>Statisch:</th><td><input id="property-dialog-static" type="checkbox"></td></tr>
+        </table>
+    </div>
+
+    <div id="method-dialog" class="dialog" title="Methode">
+        <table>
+            <tbody>
+                <tr><th></th></th><th>Name</th><th>Type</th></tr>
+                <tr class="horizontal">
+                    <th>Methode:</th>
+                    <td><input id="method-dialog-name"></td>
+                    <td><input id="method-dialog-type"></td>
+                    <td><button onclick="tidej.editor.addParam()">+ Param</button></td>
+                    <td><input id="method-dialog-static" type="checkbox">Static</td>
+                </tr>
+            </tbody>
+            <tbody id="method-dialog-params"></tbody>
+        </table>
+        <textarea id="method-dialog-body" style="width:770px;height:500px"></textarea>
+    </div>
+</div>
+
+  
+<script src="js/runtime.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/editor.js"></script>
+
+<script>
+    $('button').button();
+
+	load(function() {
+		tidej.editor.initDiagram();
+		$("#run").attr("src", "run.html#" + getStorageId());
+	});
+	
+	function run() {
+		var iframeWindow = $("#run").get(0).contentWindow;
+		console.log("run", iframeWindow);
+		iframeWindow.update($("#diagram").html());
+	}
+	
+</script>
+
+</body>
 </html>

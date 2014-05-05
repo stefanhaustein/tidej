@@ -1,24 +1,29 @@
 #diagram {
-    height: 100%;
+   height:100%;
+}
+
+tj-class.application:before {
+	content: "<<Applikation>>";
+	font-size: 10px;
 }
 
 tj-class {
-  background-color: orange;
-  display: block;
-  border: solid 1px black;
-  position: absolute;
-  top: 50px;
-  left: 50px;
-  max-width: 300px;
-  min-width: 100px;
-  white-space: nowrap;
-  overflow-x: hidden;
-  text-overflow: ellipsis;
+	text-align: center;
+	background-color: moccasin;
+	display: block;
+  	border: solid 1px black;
+  	position: absolute;
+  	top: 50px;
+  	left: 50px;
+  	max-width: 300px;
+  	min-width: 100px;
+  	white-space: nowrap;
+  	overflow-x: hidden;
+  	text-overflow: ellipsis;
 }
 
 tj-class>tj-name {
   padding: 8px;
-  text-align: center;
   display: block;
   font-weight: bold;
 }
@@ -26,6 +31,7 @@ tj-class>tj-name {
 tj-properties, tj-methods {
   padding: 8px;
   display: block;
+  text-align: left;
 }
 
 tj-properties {
