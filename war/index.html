@@ -5,6 +5,11 @@
   
     <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
     <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    
+    <script src="http://layout.jquery-dev.net/lib/js/jquery.layout-latest.min.js"></script>
+    <link rel="stylesheet" href="css/layout.css">
+
+    <script src="lib/touch-punch-min.js"></script>
   
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/diagram.css">
@@ -13,31 +18,16 @@
 
 <body>
 
-<iframe id="run" style="float:right;height:100%;width:30%;background-color:#fff;border:0;margin:0;padding:0;border-left:10px solid gray"></iframe>
+<iframe id="run" class="ui-layout-east"></iframe>
 
-<div id="control" >
+<div id="control" class="ui-layout-west">
   <div id="title"><img src="img/logo.png"></img></div>
   <div><button onclick="save()">Speichern</button></div>
   <div><button onclick="run()">Starten</button></div>
 </div>
 
 
-<div id="diagram">
-    <tj-class>
-        <tj-name>Foo</tj-name>
-        <tj-properties>
-            <tj-property>
-                <tj-name>foo</tj-name><tj-type>number</tj-type>
-            </tj-property>
-        </tj-properties>
-        <tj-methods>
-            <tj-method>
-                <tj-name>sqr</tj-name>
-                <tj-params><tj-param><tj-name>x</tj-name><tj-type>number</tj-type></tj-param></tj-params><tj-type>number</tj-type>
-                <tj-body>return x*x;</tj-body>
-            </tj-method>
-        </tj-methods>
-    </tj-class>
+<div id="diagram" class="ui-layout-center">
 </div>
 
 
@@ -49,7 +39,7 @@
     </tj-class>
   
     <tj-property>
-        <tj-name></tj-name><tj-type></tj-type>
+        <tj-name></tj-name><tj-type></tj-type><tj-value></tj-value>
     </tj-property>
 
     <tj-method>
@@ -108,10 +98,28 @@
 <script>
     $('button').button();
 
-	load(function() {
-		tidej.editor.initDiagram();
-		$("#run").attr("src", "run.html#" + getStorageId());
-	});
+    $('body').layout({
+    	west: {
+    		resizable: false,
+    		size: 130,
+    		spacing_open: 0,
+    		spacing_closed: 0
+    	},
+    	east: {
+    		maskIframesOnResize: true,
+    		spacing_open: 16,
+    		spacing_closed: 16,
+    	}
+    });
+    
+    if (getStorageId() == null) {
+		$("#run").attr("src", "run.html");
+    } else {
+		load(function() {
+			tidej.editor.initDiagram();
+			$("#run").attr("src", "run.html#" + getStorageId());
+		});
+    }
 	
 	function run() {
 		var iframeWindow = $("#run").get(0).contentWindow;
