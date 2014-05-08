@@ -7,10 +7,12 @@
 </div>
 
 <script src="js/runtime.js"></script>
-<script src="js/storage.js"></script>
 <script src="http://tidej.net/jssum/src/jssum.js"></script>
+<script src="http://tidej.net/jssum/src/jsfut.js"></script>
 <script>
-function run() {
+function update(content) {
+	$("#diagram").html(content);
+
 	var applicationConstructor = null;
 	$("tj-class").each(function() {
 		var constructor = tidej.runtime.loadClass(this);
@@ -29,12 +31,8 @@ function run() {
 }
 
 
-load(run);
+load(update);
 
-function update(content) {
-	$("#diagram").html(content);
-	run();
-}
 
 </script>
 </body>

@@ -2,6 +2,11 @@ tidej.Editor = function() {
     this.currentClass = null;
     this.currentProperty = null;
     this.currentMethod = null;
+    this.revision = -1;
+    this.saveTimer = -1;
+    this.initUi();
+    this.lastSaved = null;
+    this.id = -1;
 }
 
 tidej.Editor.prototype.addClass = function (x, y) {
@@ -55,7 +60,9 @@ tidej.Editor.prototype.openPropertyDialog = function(propertyElement) {
     var q = $(propertyElement);
     $("#property-dialog-name").val(q.children("tj-name").text());
     $("#property-dialog-type").val(q.children("tj-type").text());
-    $("#property-dialog-static").prop('checked', q.hasClass("static"));
+    $("#property-dialog-value").val(q.children("tj-value").text());
+    var modifier = q.hasClass("const") ? "Konstante" : q.hasClass("static") ? "Klasseneigenschaft" : "Eigenschaft";
+    $("#property-dialog-modifier").val(modifier); 
     $("#property-dialog").dialog('open');
 }
 
@@ -110,11 +117,11 @@ tidej.Editor.prototype.saveProperty = function() {
     var q = $(this.currentProperty);
     q.children("tj-name").text($("#property-dialog-name").val());
     q.children("tj-type").text($("#property-dialog-type").val());
-    if ($("#property-dialog-static").is(':checked')) {
-        q.addClass("static");
-    } else {
-        q.removeClass("static");
-    }
+    q.children("tj-value").text($("#property-dialog-value").val());
+
+    var modifier = $("#property-dialog-modifier").val()
+    q.toggleClass("const", modifier == 'Konstante');
+    q.toggleClass('static', modifier == 'Klasseneigenschaft');
     
     if (this.currentProperty.parentNode == null) {
         $(this.currentClass).children("tj-properties").get(0).appendChild(this.currentProperty);
@@ -127,11 +134,7 @@ tidej.Editor.prototype.saveMethod = function() {
     q.children("tj-type").text($("#method-dialog-type").val());
     q.children("tj-body").text($("#method-dialog-body").val());
     
-    if ($("#method-dialog-static").is(':checked')) {
-        q.addClass("static");
-    } else {
-        q.removeClass("static");
-    }
+    q.toggleClass("static", $("#method-dialog-static").is(':checked'));
     
     var paramsQuery = q.find("tj-params");
     paramsQuery.empty();
@@ -148,114 +151,181 @@ tidej.Editor.prototype.saveMethod = function() {
     }
 }
 
-tidej.Editor.prototype.initDiagram = function() {
+tidej.Editor.prototype.initUi = function() {
+	$("#diagram").bind("DOMSubtreeModified", function() {
+		
+		var title = $("#diagram tj-class.application>tj-name").text();
+		if (title != null && title != '') {
+			window.document.title = "Tidej - " + title;
+		}
+		
+		if (tidej.editor.saveTimer != -1) {
+			window.clearTimeout(tidej.editor.saveTimer);
+		}
+		tidej.editor.saveTimer = window.setTimeout(function() {
+			tidej.editor.save();
+		}, 4000);
+	});
+	
+	$("#class-dialog").dialog({
+		autoOpen: false,
+		modal: true,
+		width: 450,
+		buttons: {
+			'Abbrechen': function() {
+				$(this).dialog("close");
+			},
+			'Loeschen': function(event) {
+				var parent = tidej.editor.currentClass.parentNode;
+				if (parent != null) {
+					parent.removeChild(tidej.editor.currentClass);
+				}
+				$(this).dialog("close");
+			},
+			'Speichern': function() {
+				tidej.editor.saveClass();
+				$(this).dialog("close");
+			}
+		}
+	});
+
+	$("#property-dialog").dialog({
+		autoOpen: false,
+		modal: true,
+		width: 450,
+		buttons: {
+			'Abbrechen': function() {
+				$("#property-dialog").dialog('close');
+			},
+			'Loeschen': function(event) {
+				var parent = tidej.editor.currentProperty.parentNode;
+				if (parent != null) {
+					parent.removeChild(tidej.editor.currentProperty);
+				}
+				$(this).dialog("close");
+			},
+			'Speichern': function() {
+				tidej.editor.saveProperty();
+				$("#property-dialog").dialog('close');
+			}
+		}
+	});
+
+	$("#method-dialog").dialog({
+		autoOpen: false,
+		modal: true,
+		width: 800,
+		buttons: {
+			'Abbrechen': function() {
+				$("#method-dialog").dialog('close');
+			},
+			'Loeschen': function(event) {
+				var parent = tidej.editor.currentMethod.parentNode;
+				if (parent != null) {
+					parent.removeChild(tidej.editor.currentMethod);
+				}
+				$(this).dialog("close");
+			},
+			'Speichern': function() {
+				tidej.editor.saveMethod();
+				$("#method-dialog").dialog('close');
+			}
+		}
+	});
+
+	$("body").click(function (event) {
+		var element = event.target;
+		while (element != null) {
+			var name = element.tagName;
+			if (name != null) {
+				if (element.id == 'class-dialog') {
+					return;
+				}
+				name = name.toLowerCase();
+
+				if (name == "tj-property") {
+					tidej.editor.openPropertyDialog(element);
+					return;
+				} 
+				if (name == "tj-method") {
+					tidej.editor.openMethodDialog(element);
+					return;
+				} 
+				if (name == "tj-class") {
+					tidej.editor.openClassDialog(element);
+					return;
+				} 
+				console.log(event.target.tagName);
+			}
+        
+			element = element.parentNode;
+		}
+    
+		if (event.target == document.getElementById('diagram')
+				|| event.target == $("body").get(0)) {
+			tidej.editor.addClass(event.clientX, event.clientY);
+		}  
+		// No element found.  
+    
+	});
+};
+
+tidej.Editor.prototype.initDiagram = function(content, meta) {
+	$("#diagram").html(content);
+	this.lastSaved = content;
+	this.revision = meta['rev'];
+	$("#revision").text(this.revision);
 	$("tj-class").draggable();
+};
+
+
+tidej.Editor.prototype.save = function(callback) {
+	var content = $("#diagram").html();
+	console.log("save() called");
+	if (content == this.lastSaved) {
+		console.log("content unchanged!");
+		if (callback != null) {
+			callback();
+		}
+		return;
+	}
+	this.lastSaved = content;
+
+	xmlhttp = new XMLHttpRequest();
+	var path = "storage";
+	var params = tidej.runtime.params();
+	var id = params['id'];
+	var secret = params['secret'];
+	if (id != null && secret != null) {
+		path += "?id=" + id + "&secret=" + secret;
+	}
+	xmlhttp.open("POST", path, true);
+	xmlhttp.onreadystatechange = function() {
+		if (xmlhttp.readyState == 4) {
+			var meta = tidej.runtime.parseParams(xmlhttp.responseText);
+			var newId = meta['id'];
+			this.revision = meta['rev'];
+			window.console.log("id", id, "ret-meta:", meta);
+			$("#revision").text(this.revision);
+			history.pushState(null, null, "#id=" + newId + ";secret=" + meta['secret']);
+	  	}
+	 }
+	xmlhttp.send(content);
+}
+
+tidej.Editor.prototype.run = function(fullscreen) {
+	if (fullscreen) {
+		this.save(function() {
+			window.location.href = "run.html#id=" + 
+				tidej.runtime.params()['id'] + ";rev=" + tidej.editor.revision;
+		});
+	} else {
+		this.save();
+		var iframeWindow = $("#run").get(0).contentWindow;
+		console.log("run", iframeWindow);
+		iframeWindow.update($("#diagram").html());
+	}
 }
 
 tidej.editor = new tidej.Editor();
-
-$("#class-dialog").dialog({
-    autoOpen: false,
-    modal: true,
-    width: 450,
-    buttons: {
-        'Abbrechen': function() {
-            $(this).dialog("close");
-        },
-        'Loeschen': function(event) {
-            var parent = tidej.editor.currentClass.parentNode;
-            if (parent != null) {
-                parent.removeChild(tidej.editor.currentClass);
-            }
-            $(this).dialog("close");
-        },
-        'Speichern': function() {
-            tidej.editor.saveClass();
-            $(this).dialog("close");
-        }
-    }
-});
-
-$("#property-dialog").dialog({
-    autoOpen: false,
-    modal: true,
-    width: 450,
-    buttons: {
-        'Abbrechen': function() {
-            $("#property-dialog").dialog('close');
-        },
-        'Loeschen': function(event) {
-            var parent = tidej.editor.currentProperty.parentNode;
-            if (parent != null) {
-                parent.removeChild(tidej.editor.currentProperty);
-            }
-            $(this).dialog("close");
-        },
-        'Speichern': function() {
-            tidej.editor.saveProperty();
-            $("#property-dialog").dialog('close');
-        }
-    }
-});
-
-$("#method-dialog").dialog({
-    autoOpen: false,
-    modal: true,
-    width: 800,
-    buttons: {
-        'Abbrechen': function() {
-            $("#method-dialog").dialog('close');
-        },
-        'Loeschen': function(event) {
-            var parent = tidej.editor.currentMethod.parentNode;
-            if (parent != null) {
-                parent.removeChild(tidej.editor.currentMethod);
-            }
-            $(this).dialog("close");
-        },
-        'Speichern': function() {
-            tidej.editor.saveMethod();
-            $("#method-dialog").dialog('close');
-        }
-    }
-});
-
-
-
-$("body").click(function (event) {
-    var element = event.target;
-    while (element != null) {
-        var name = element.tagName;
-        if (name != null) {
-            if (element.id == 'class-dialog') {
-                return;
-            }
-            name = name.toLowerCase();
-
-            if (name == "tj-property") {
-                tidej.editor.openPropertyDialog(element);
-                return;
-            } 
-            if (name == "tj-method") {
-            	tidej.editor.openMethodDialog(element);
-                return;
-            } 
-            if (name == "tj-class") {
-            	tidej.editor.openClassDialog(element);
-                return;
-            } 
-            console.log(event.target.tagName);
-        }
-        
-        element = element.parentNode;
-    }
-    
-    if (event.target == document.getElementById('diagram')
-    		|| event.target == $("body").get(0)) {
-    	tidej.editor.addClass(event.clientX, event.clientY);
-    }  
-    // No element found.  
-    
-});
-
 

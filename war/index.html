@@ -18,12 +18,13 @@
 
 <body>
 
-<iframe id="run" class="ui-layout-east"></iframe>
+<iframe id="run" class="ui-layout-east" src="run.html"></iframe>
 
 <div id="control" class="ui-layout-west">
   <div id="title"><img src="img/logo.png"></img></div>
-  <div><button onclick="save()">Speichern</button></div>
-  <div><button onclick="run()">Starten</button></div>
+  <div><button onclick="tidej.editor.run(false)">Start</button></div>
+  <div><button onclick="tidej.editor.run(true)">Vollbild</button></div>
+  <p>Rev: <span id="revision"></span></p>
 </div>
 
 
@@ -68,7 +69,8 @@
         <table class="horizontal">
             <tr><th>Name:</th><td><input id="property-dialog-name"></td></tr>
             <tr><th>Typ:</th><td><input id="property-dialog-type"></td></tr>
-            <tr><th>Statisch:</th><td><input id="property-dialog-static" type="checkbox"></td></tr>
+            <tr><th>Art:</th><td><select id="property-dialog-modifier"><option>Eigenschaft</option><option>Konstante</option><option>Klasseneigenschaft</option></select></tr>
+            <tr><th>(Initialer) Wert:</th><td><input id="property-dialog-value"></td></tr>
         </table>
     </div>
 
@@ -92,40 +94,32 @@
 
   
 <script src="js/runtime.js"></script>
-<script src="js/storage.js"></script>
 <script src="js/editor.js"></script>
 
 <script>
-    $('button').button();
+$('button').button();
 
-    $('body').layout({
-    	west: {
-    		resizable: false,
-    		size: 130,
-    		spacing_open: 0,
-    		spacing_closed: 0
-    	},
-    	east: {
-    		maskIframesOnResize: true,
-    		spacing_open: 16,
-    		spacing_closed: 16,
-    	}
-    });
+$('body').layout({
+  	west: {
+   		resizable: false,
+   		size: 130,
+   		spacing_open: 0,
+   		spacing_closed: 0
+   	},
+   	east: {
+   		maskIframesOnResize: true,
+   		spacing_open: 16,
+   		spacing_closed: 16,
+   	}
+});
     
-    if (getStorageId() == null) {
-		$("#run").attr("src", "run.html");
-    } else {
-		load(function() {
-			tidej.editor.initDiagram();
-			$("#run").attr("src", "run.html#" + getStorageId());
-		});
-    }
+if (tidej.runtime.params()['id'] != null) {
+	$("#diagram").text("Loading...")
+	load(function(meta, content) {
+		tidej.editor.initDiagram(meta, content);
+	});
+}
 	
-	function run() {
-		var iframeWindow = $("#run").get(0).contentWindow;
-		console.log("run", iframeWindow);
-		iframeWindow.update($("#diagram").html());
-	}
 	
 </script>
 

@@ -43,11 +43,15 @@ tj-method, tj-property {
   display: block;
 }
 
-tj-property.static, tj-method.static {
+tj-property.static, tj-method.static, tj-method.const {
     text-decoration: underline;
 }
 
-tj-type:before {
+tj-param + tj-param:before {
+	content: ", ";
+}
+
+tj-type:not(:empty):before {
   content: ": ";
 }
 
@@ -57,6 +61,17 @@ tj-params:before {
 
 tj-params:after {
   content: ")";
+}
+
+tj-value {
+  display: none;
+}
+.const tj-value {
+  display: inline;
+}
+
+.const tj-value:before {
+	content: " = ";
 }
 
 tj-body {
