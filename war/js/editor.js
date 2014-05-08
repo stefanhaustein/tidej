@@ -42,6 +42,17 @@ tidej.Editor.prototype.addParam = function(button) {
 	$("#method-dialog button").button();
 }
 
+tidej.Editor.prototype.load = function() {
+	window.console.log('load triggered...');
+	this.stop();
+	if (tidej.runtime.params()['id'] != null) {
+		$("#diagram").text("Loading...")
+		load(function(meta, content) {
+			tidej.editor.initDiagram(meta, content);
+		});
+	}
+}
+
 tidej.Editor.prototype.removeParam = function(button) {
 	$(button).closest('tr').remove();
 }
@@ -282,8 +293,8 @@ tidej.Editor.prototype.initDiagram = function(content, meta) {
 tidej.Editor.prototype.save = function(callback) {
 	var content = $("#diagram").html();
 	console.log("save() called");
-	if (content == this.lastSaved) {
-		console.log("content unchanged!");
+	if (content == this.lastSaved || $("#diagram tj-class").size() == 0) {
+		console.log("content empty or unchanged!");
 		if (callback != null) {
 			callback();
 		}
@@ -307,23 +318,40 @@ tidej.Editor.prototype.save = function(callback) {
 			this.revision = meta['rev'];
 			window.console.log("id", id, "ret-meta:", meta);
 			$("#revision").text(this.revision);
-			history.pushState(null, null, "#id=" + newId + ";secret=" + meta['secret']);
+			if (id != newId) {
+				history.pushState(null, null, "#id=" + newId + ";secret=" + meta['secret']);
+			}
+			if (callback != null) {
+				callback();
+			}
 	  	}
 	 }
 	xmlhttp.send(content);
 }
 
+tidej.Editor.prototype.stop = function() {
+	$('#stop-button').button('disable');
+	$('#run').html('<div id="placeholder"></div>');
+}
+
 tidej.Editor.prototype.run = function(fullscreen) {
 	if (fullscreen) {
 		this.save(function() {
-			window.location.href = "run.html#id=" + 
-				tidej.runtime.params()['id'] + ";rev=" + tidej.editor.revision;
+			var win = window.open('run.html#id=' + 
+					tidej.runtime.params()['id'] + ';rev=' + tidej.editor.revision, 'run');
+			win.focus();
 		});
 	} else {
-		this.save();
-		var iframeWindow = $("#run").get(0).contentWindow;
-		console.log("run", iframeWindow);
-		iframeWindow.update($("#diagram").html());
+		this.stop();
+		this.save(function() {
+			$('#stop-button').button('enable');
+			$('#run').html('<iframe src="run.html"></iframe>');
+			var iframeWindow = $("#run iframe").get(0).contentWindow;
+			console.log("run", iframeWindow);
+			iframeWindow.onload = function() {
+				iframeWindow.update($("#diagram").html());
+			}
+		});
 	}
 }
 

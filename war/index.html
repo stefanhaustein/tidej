@@ -1,7 +1,9 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+<!--     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/cupertino/jquery-ui.css">
+ -->
+  <link rel="stylesheet" href="lib/jquery-ui-1.10.3.flat.min.css">
   
     <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
     <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
@@ -11,26 +13,26 @@
 
     <script src="lib/touch-punch-min.js"></script>
   
-    <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/diagram.css">
     <link rel="stylesheet" href="css/editor.css">
 </head>
 
-<body>
-
-<iframe id="run" class="ui-layout-east" src="run.html"></iframe>
+<body  onhashchange="tidej.editor.load();">
 
 <div id="control" class="ui-layout-west">
   <div id="title"><img src="img/logo.png"></img></div>
   <div><button onclick="tidej.editor.run(false)">Start</button></div>
   <div><button onclick="tidej.editor.run(true)">Vollbild</button></div>
-  <p>Rev: <span id="revision"></span></p>
+  <div><button id="stop-button" disabled="true" onclick="tidej.editor.stop()">Stop</button></div>
+  <p><center>Rev: <span id="revision"></span></p>
 </div>
-
 
 <div id="diagram" class="ui-layout-center">
 </div>
 
+<div id="run" class="ui-layout-east">
+	<div id="placeholder"></div>
+</div>
 
 <div id="templates">
     <tj-class>
@@ -104,21 +106,19 @@ $('body').layout({
    		resizable: false,
    		size: 130,
    		spacing_open: 0,
-   		spacing_closed: 0
+   		spacing_closed: 0,
+   		closable: false,
    	},
    	east: {
    		maskIframesOnResize: true,
+   		size: 350,
    		spacing_open: 16,
    		spacing_closed: 16,
+   		closable: false,
    	}
 });
-    
-if (tidej.runtime.params()['id'] != null) {
-	$("#diagram").text("Loading...")
-	load(function(meta, content) {
-		tidej.editor.initDiagram(meta, content);
-	});
-}
+
+tidej.editor.load();
 	
 	
 </script>

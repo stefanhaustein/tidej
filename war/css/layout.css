@@ -60,8 +60,8 @@
  *	RESIZER-BARS
  */
 .ui-layout-resizer	{ /* all 'resizer-bars' */
-	background:		#DDD;
-	border:			1px solid #BBB;
+	background:		#eee;
+/*	border:			1px solid #BBB; */
 	border-width:	0;
 	}
 	.ui-layout-resizer-drag {		/* REAL resizer while resize in progress */
@@ -72,10 +72,10 @@
 		otherwise color shifts while dragging when bar can't keep up with mouse */
 	.ui-layout-resizer-open-hover ,	/* hover-color to 'resize' */
 	.ui-layout-resizer-dragging {	/* resizer beging 'dragging' */
-		background: #C4E1A4;
+		background: #ddd;
 	}
 	.ui-layout-resizer-dragging {	/* CLONED resizer being dragged */
-		border: 	 1px solid #BBB;
+	/*	border: 	 1px solid #BBB; 
 	}
 	.ui-layout-resizer-north-dragging,
 	.ui-layout-resizer-south-dragging {
@@ -84,7 +84,7 @@
 	.ui-layout-resizer-west-dragging,
 	.ui-layout-resizer-east-dragging {
 		border-width:	0 1px;
-	}
+	} */
 	/* NOTE: Add a 'dragging-limit' color to provide visual feedback when resizer hits min/max size limits */
 	.ui-layout-resizer-dragging-limit {	/* CLONED resizer at min or max size-limit */
 		background: #E1A4A4; /* red */
