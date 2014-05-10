@@ -1,7 +1,7 @@
 <html>
 
 <head>
-<!--     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/cupertino/jquery-ui.css">
+ <!--    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/cupertino/jquery-ui.css">
  -->
   <link rel="stylesheet" href="lib/jquery-ui-1.10.3.flat.min.css">
   
@@ -13,6 +13,10 @@
 
     <script src="lib/touch-punch-min.js"></script>
   
+	<script src="lib/codemirror-4.1/lib/codemirror.js"></script>
+	<link rel="stylesheet" href="lib/codemirror-4.1/lib/codemirror.css">
+	<script src="lib/codemirror-4.1/mode/javascript/javascript.js"></script>
+  
     <link rel="stylesheet" href="css/diagram.css">
     <link rel="stylesheet" href="css/editor.css">
 </head>
@@ -21,6 +25,7 @@
 
 <div id="control" class="ui-layout-west">
   <div id="title"><img src="img/logo.png"></img></div>
+  <div><button onclick="tidej.editor.addClass()">+ Klasse</button></div>
   <div><button onclick="tidej.editor.run(false)">Start</button></div>
   <div><button onclick="tidej.editor.run(true)">Vollbild</button></div>
   <div><button id="stop-button" disabled="true" onclick="tidej.editor.stop()">Stop</button></div>
@@ -39,14 +44,15 @@
         <tj-name></tj-name>
         <tj-properties></tj-properties>
         <tj-methods></tj-methods>
+        <tj-doc></tj-doc>
     </tj-class>
   
     <tj-property>
-        <tj-name></tj-name><tj-type></tj-type><tj-value></tj-value>
+        <tj-name></tj-name><tj-type></tj-type><tj-value></tj-value><tj-doc></tj-doc>
     </tj-property>
 
     <tj-method>
-        <tj-name></tj-name><tj-params></tj-params><tj-type></tj-type><tj-body></tj-body>
+        <tj-name></tj-name><tj-params></tj-params><tj-type></tj-type><tj-body></tj-body><tj-doc></tj-doc>
     </tj-method>
 
     <tj-param>
@@ -64,33 +70,42 @@
         <!--   <tr><th>Extends: </th><td><input id="class-editor-extends"></td></tr> -->
             <tr><th></th><td><button style="width:220px;text-align:left" onclick="tidej.editor.addProperty();">Eigenschaft hinzuf&uuml;gen</button><br>
                              <button style="width:220px;text-align:left" onclick="tidej.editor.addMethod();">Methode hinzuf&uuml;gen</button></td></tr>
+            <tr><th valign="top">Dokumentation:</th><td><textarea id="class-dialog-doc"></textarea></td></tr>
         </table>
     </div>
 
     <div id="property-dialog" class="dialog" title="Eigenschaft">
         <table class="horizontal">
+            <tr><th>Art:</th><td><select id="property-dialog-modifier"><option>Eigenschaft</option><option>Konstante</option><option>Klasseneigenschaft</option></select></tr>
             <tr><th>Name:</th><td><input id="property-dialog-name"></td></tr>
             <tr><th>Typ:</th><td><input id="property-dialog-type"></td></tr>
-            <tr><th>Art:</th><td><select id="property-dialog-modifier"><option>Eigenschaft</option><option>Konstante</option><option>Klasseneigenschaft</option></select></tr>
             <tr><th>(Initialer) Wert:</th><td><input id="property-dialog-value"></td></tr>
+            <tr><th valign="top">Dokumentation:</th><td><textarea id="property-dialog-doc"></textarea></td></tr>
         </table>
     </div>
 
     <div id="method-dialog" class="dialog" title="Methode">
-        <table>
-            <tbody>
-                <tr><th></th></th><th>Name</th><th>Type</th></tr>
-                <tr class="horizontal">
-                    <th>Methode:</th>
-                    <td><input id="method-dialog-name"></td>
-                    <td><input id="method-dialog-type"></td>
-                    <td><button onclick="tidej.editor.addParam()">+ Param</button></td>
-                    <td><input id="method-dialog-static" type="checkbox">Static</td>
-                </tr>
-            </tbody>
-            <tbody id="method-dialog-params"></tbody>
-        </table>
-        <textarea id="method-dialog-body" style="width:770px;height:500px"></textarea>
+       	<table id="signature" style="height:100%;width:100%">
+   		    <tbody>
+           		<tr><th style="width:1%"></th></th><th>Name</th><th>Typ</th><th style="width:99%"></th></tr>
+       			<tr class="horizontal">
+               		<th><select id="method-dialog-modifier">
+              			<option>Auftrag</option>
+           		    	<option>Anfrage</option>
+          			 	<option>Konstruktor</option>
+	          			<option>Klassenauftrag</option>
+           			 	<option>Klassenanfrage</option>
+              		</select></th>
+              		<td><input id="method-dialog-name"></td>
+               		<td><input id="method-dialog-type"></td>
+               		<td><button onclick="tidej.editor.addParam(this)">+ Parameter</button></td>
+           		</tr>
+       			<tr class="horizontal"><th valign="top">Dokumentation:</th><td colspan="3"><textarea id="method-dialog-doc" style="width:100%;box-sizing:border-box;resize:vertical"></textarea></td></tr>
+       			
+       			<tr style="height:90%"><td colspan="4"><div style="height:100%"> <textarea id="method-dialog-body"></textarea></div></td></tr>
+       			
+       		</tbody>
+		</table>
     </div>
 </div>
 

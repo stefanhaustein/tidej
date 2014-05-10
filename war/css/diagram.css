@@ -63,7 +63,7 @@ tj-params:after {
   content: ")";
 }
 
-tj-value {
+tj-value, tj-body, tj-doc {
   display: none;
 }
 .const tj-value {
@@ -74,6 +74,3 @@ tj-value {
 	content: " = ";
 }
 
-tj-body {
-  display: none;
-}
