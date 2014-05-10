@@ -46,7 +46,6 @@ tidej.Editor.prototype.addParam = function(after, name, type) {
 	"<button onclick='tidej.editor.removeParam(this)'>\u2212</button></td>" +
 	"</tr>";
 	$(after).closest('tr').after(row);
-	$("#method-dialog button").button();
 }
 
 tidej.Editor.prototype.load = function() {
@@ -114,7 +113,6 @@ tidej.Editor.prototype.openMethodDialog = function(methodElement) {
         		$(this).children("tj-type").text());
     	insertAfter = $(".method-dialog-param").last().get(0);
     });
-	$("#method-dialog button").button();
     $("#method-dialog").dialog('open');
 }
 
