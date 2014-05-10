@@ -1,3 +1,4 @@
+
 tidej.Editor = function() {
     this.currentClass = null;
     this.currentProperty = null;
@@ -53,7 +54,7 @@ tidej.Editor.prototype.load = function() {
 	this.stop();
 	if (tidej.runtime.params()['id'] != null) {
 		$("#diagram").text("Loading...")
-		load(function(meta, content) {
+		tidej.runtime.load(function(meta, content) {
 			tidej.editor.initDiagram(meta, content);
 		});
 	}
@@ -94,7 +95,7 @@ tidej.Editor.prototype.openMethodDialog = function(methodElement) {
     $("#method-dialog-doc").val(q.children("tj-doc").text());
     		
     this.codeMirror.setValue(q.children("tj-body").text());
-
+    
     var modifier;
     if (q.hasClass("constructor")) {
     	modifier = "Konstructor";
@@ -176,10 +177,50 @@ tidej.Editor.prototype.saveMethod = function() {
     }
 }
 
+tidej.Editor.prototype.checkSyntax = function(text) {
+	try {
+		esprima.parse(text);
+		return [];
+	} catch (error) {
+		console.log(error);
+		return[{
+			from: CodeMirror.Pos(error.lineNumber - 1, error.column - 1),
+            to: CodeMirror.Pos(error.lineNumber - 1, error.column - 1),
+            message: error.description
+		}];
+	}
+};
+
 tidej.Editor.prototype.initUi = function() {
+	var self = this;
 	this.codeMirror = CodeMirror.fromTextArea($('#method-dialog-body').get(0), {
-	    lineNumbers: true});
-	
+	    lineNumbers: true,
+	    mode: "javascript",
+	    gutters: ["CodeMirror-lint-markers"],
+	    lint: function(text) {
+	    	console.log("lint", self);
+	    	return self.checkSyntax(text);
+	    }
+	});
+	$('#control button').button();
+
+	$('body').layout({
+	  	west: {
+	   		resizable: false,
+	   		size: 130,
+	   		spacing_open: 0,
+	   		spacing_closed: 0,
+	   		closable: false,
+	   	},
+	   	east: {
+	   		maskIframesOnResize: true,
+	   		size: 350,
+	   		spacing_open: 16,
+	   		spacing_closed: 16,
+	   		closable: false,
+	   	}
+	});
+
 	$("#diagram").bind("DOMSubtreeModified", function() {
 		
 		var title = $("#diagram tj-class.application>tj-name").text();
@@ -187,11 +228,11 @@ tidej.Editor.prototype.initUi = function() {
 			window.document.title = "Tidej - " + title;
 		}
 		
-		if (tidej.editor.saveTimer != -1) {
+		if (self.saveTimer != -1) {
 			window.clearTimeout(tidej.editor.saveTimer);
 		}
-		tidej.editor.saveTimer = window.setTimeout(function() {
-			tidej.editor.save();
+		self.saveTimer = window.setTimeout(function() {
+			self.save();
 		}, 4000);
 	});
 	
@@ -204,14 +245,14 @@ tidej.Editor.prototype.initUi = function() {
 				$(this).dialog("close");
 			},
 			'Loeschen': function(event) {
-				var parent = tidej.editor.currentClass.parentNode;
+				var parent = self.currentClass.parentNode;
 				if (parent != null) {
-					parent.removeChild(tidej.editor.currentClass);
+					parent.removeChild(self.currentClass);
 				}
 				$(this).dialog("close");
 			},
 			'Speichern': function() {
-				tidej.editor.saveClass();
+				self.saveClass();
 				$(this).dialog("close");
 			}
 		}
@@ -226,14 +267,14 @@ tidej.Editor.prototype.initUi = function() {
 				$("#property-dialog").dialog('close');
 			},
 			'Loeschen': function(event) {
-				var parent = tidej.editor.currentProperty.parentNode;
+				var parent = self.currentProperty.parentNode;
 				if (parent != null) {
-					parent.removeChild(tidej.editor.currentProperty);
+					parent.removeChild(self.currentProperty);
 				}
 				$(this).dialog("close");
 			},
 			'Speichern': function() {
-				tidej.editor.saveProperty();
+				self.saveProperty();
 				$("#property-dialog").dialog('close');
 			}
 		}
@@ -245,21 +286,21 @@ tidej.Editor.prototype.initUi = function() {
 		width: 800,
 		height: 600,
 		open: function() {
-			tidej.editor.codeMirror.refresh();
+			self.codeMirror.refresh();
 		},
 		buttons: {
 			'Abbrechen': function() {
 				$("#method-dialog").dialog('close');
 			},
 			'Loeschen': function(event) {
-				var parent = tidej.editor.currentMethod.parentNode;
+				var parent = self.currentMethod.parentNode;
 				if (parent != null) {
-					parent.removeChild(tidej.editor.currentMethod);
+					parent.removeChild(self.currentMethod);
 				}
 				$(this).dialog("close");
 			},
 			'Speichern': function() {
-				tidej.editor.saveMethod();
+				self.saveMethod();
 				$("#method-dialog").dialog('close');
 			}
 		}
@@ -276,25 +317,20 @@ tidej.Editor.prototype.initUi = function() {
 				name = name.toLowerCase();
 
 				if (name == "tj-property") {
-					tidej.editor.openPropertyDialog(element);
+					self.openPropertyDialog(element);
 					return;
 				} 
 				if (name == "tj-method") {
-					tidej.editor.openMethodDialog(element);
+					self.openMethodDialog(element);
 					return;
 				} 
 				if (name == "tj-class") {
-					tidej.editor.openClassDialog(element);
+					self.openClassDialog(element);
 					return;
 				} 
-				console.log(event.target.tagName);
 			}
-        
 			element = element.parentNode;
 		}
-    
-		
-		// No element found.  
     
 	});
     
@@ -349,28 +385,58 @@ tidej.Editor.prototype.save = function(callback) {
 	xmlhttp.send(content);
 }
 
-tidej.Editor.prototype.stop = function() {
+tidej.Editor.prototype.stop = function(callback) {
 	$('#stop-button').button('disable');
-	$('#run').html('<div id="placeholder"></div>');
+	var iframe = document.getElementById("run");
+	if (iframe.getAttribute('src') == stop.html) {
+		if (callback != null) {
+			callback();
+		}
+	}
+	iframe.onload = callback;
+	iframe.setAttribute("src", "stop.html");
+}
+
+tidej.Editor.prototype.showError = function(className, memberName, line, message) {
+	var diagramElement = document.getElementById('diagram');
+	var classElement = tidej.dom.findName(diagramElement, className);
+	
+	var propertiesElement = tidej.dom.getChildElement(classElement, 'tj-properties');
+	var propertyElement = tidej.dom.findName(propertiesElement, memberName);
+	
+	if (propertyElement != null) {
+		this.openPropertyDialog(propertyElement);
+	} else {
+		var methodsElement = tidej.dom.getChildElement(classElement, 'tj-methods');
+		var methodElement = tidej.dom.findName(methodsElement, memberName);
+		var self = this;
+		if (methodElement != null) {
+			this.openMethodDialog(methodElement);
+			self.codeMirror.setSelection({line: line, ch: 0}, {line: line, ch:99});
+		}
+	}
+	window.alert(message);
 }
 
 tidej.Editor.prototype.run = function(fullscreen) {
+	var self = this;
 	if (fullscreen) {
 		this.save(function() {
-			var win = window.open('run.html#id=' + 
-					tidej.runtime.params()['id'] + ';rev=' + tidej.editor.revision, 'run');
+			var url = 'run.html#id=' + tidej.runtime.params()['id'] + ';rev=' + self.revision;
+			window.console.log(url);
+			var win = window.open(url, '_blank');
 			win.focus();
 		});
 	} else {
-		this.stop();
 		this.save(function() {
-			$('#stop-button').button('enable');
-			$('#run').html('<iframe src="run.html"></iframe>');
-			var iframeWindow = $("#run iframe").get(0).contentWindow;
-			console.log("run", iframeWindow);
-			iframeWindow.onload = function() {
-				iframeWindow.update($("#diagram").html());
-			}
+			self.stop(function() {
+				$('#stop-button').button('enable');
+				var iframe = document.getElementById('run');
+				iframe.onload = function() {
+					iframe.contentWindow.tidej.runtime.run($('#diagram').html(), self);
+				}
+				iframe.setAttribute('src', 'run.html');
+			});
 		});
 	}
 }
