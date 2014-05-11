@@ -12,9 +12,7 @@ if (typeof String.prototype.startsWith != 'function') {
 
 tidej.dom.getChildElement = function(element, name) {
 	var child = element.firstElementChild;
-	console.log('getChildElement', element, name);
 	while (child != null) {
-		console.log('- checking', child, ' tagName: ' + child.tagName);
 		if (child.tagName.toLowerCase() == name) {
 			return child;
 		}
@@ -70,6 +68,7 @@ tidej.runtime.buildClass = function(classElement, mode) {
 	while (methodElement) {
 		var methodName = tidej.dom.getChildText(methodElement, 'tj-name');
 		var positionIndicator = '// [[' + className + '.' + methodName + ']]\n';
+		var isStatic = methodElement.classList.contains('static');
 		var params = '';
 		var paramsElement = tidej.dom.getChildElement(methodElement, 'tj-params');
 		var paramElement = paramsElement && paramsElement.firstElementChild;
@@ -78,7 +77,7 @@ tidej.runtime.buildClass = function(classElement, mode) {
 				params += ',';
 			}
 			params += tidej.dom.getChildText(paramElement, 'tj-name');
-			paramsElement = paramsElement.nextElementSibling;
+			paramElement = paramElement.nextElementSibling;
 		}
 		var body = positionIndicator + tidej.dom.getChildText(methodElement, 'tj-body') + '\n';
 		if (methodName == className) {
@@ -136,8 +135,6 @@ tidej.runtime.showError = function(error) {
 	}
 	
 	if (lineNumber != -1) {
-		console.log('error line: ', line, codeLines[line]);
-
 		var className = null;
 		var memberName = null;
 	
@@ -158,14 +155,10 @@ tidej.runtime.showError = function(error) {
 		
 		if (className != null) {
 			tidej.runtime.editor.showError(className, memberName, lineNumber, error.message);
+			return;
 		}
 	}
-
-
-	if (tidej.runtime.editor != null) {
-		window.console.log('editor:', tidej.runtime.editor);
-	}
-	window.console.log('error: ', error, 'stack', error.stack);
+	throw error;
 }
 
 

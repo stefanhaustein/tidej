@@ -131,8 +131,6 @@ tidej.Editor.prototype.saveClass = function() {
     } else {
         q.removeClass("application");
     }
-
-    tidej.runtime.loadClass(this.currentClass);
 }
 
 tidej.Editor.prototype.saveProperty = function() {
