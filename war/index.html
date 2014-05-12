@@ -68,7 +68,7 @@
 
 <div id="dialogs">
     
-    <form id="class-dialog" class="dialog" title="Klasse">
+    <form onsubmit="return false;" id="class-dialog" class="dialog" title="Klasse">
         <table class="horizontal">
             <tr><th>Name:</th><td><input id="class-dialog-name" pattern="[A-Z][a-zA-Z0-9]*" required
             	validationMessage="Klassennamen müssen mit einem Grossbuchstaben anfangen und dürfen nur Buchstaben und Ziffern enthalten"></td></tr>
@@ -81,7 +81,7 @@
         <button style="display:none" id="class-dialog-fake-submit"></button>
     </form>
 
-    <form id="property-dialog" class="dialog" title="Eigenschaft">
+    <form onsubmit="return false;" id="property-dialog" class="dialog" title="Eigenschaft">
         <table class="horizontal">
             <tr><th>Art:</th><td><select id="property-dialog-modifier">
             	<option value=''>Eigenschaft</option>
@@ -95,7 +95,7 @@
         <button style="display:none" id="property-dialog-fake-submit"></button>
     </form>
 
-    <form id="method-dialog" class="dialog" title="Methode">
+    <form onsubmit="return false;" id="method-dialog" class="dialog" title="Methode">
        	<table id="signature" style="height:100%;width:100%">
    		    <tbody>
            		<tr><th style="width:1%"></th></th><th>Name</th><th>Typ</th><th style="width:99%"></th></tr>
