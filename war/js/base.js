@@ -239,6 +239,9 @@ tidej.runtime.run = function(content, editor) {
 	console.log('program code with start code: ', code);
 
 	if (editor != null) {
+		window.bildschirm.onError = function(e) {
+			tidej.runtime.showError(e);
+		};
 		code = 'try {\n' + code +
 		'\n} catch(e) {\n' + 
 		'  tidej.runtime.showError(e);\n' + 

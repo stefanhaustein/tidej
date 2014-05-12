@@ -134,15 +134,15 @@ tidej.Editor.prototype.saveClass = function() {
 }
 
 tidej.Editor.prototype.saveProperty = function() {
-    var q = $(this.currentProperty);
-    q.children("tj-name").text($("#property-dialog-name").val());
-    q.children("tj-type").text($("#property-dialog-type").val());
-    q.children("tj-value").text($("#property-dialog-value").val());
-    q.children("tj-doc").text($("#property-dialog-doc").val());
+    var $p = $(this.currentProperty);
+    $p.children("tj-name").text($("#property-dialog-name").val());
+    $p.children("tj-type").text($("#property-dialog-type").val());
+    $p.children("tj-value").text($("#property-dialog-value").val());
+    $p.children("tj-doc").text($("#property-dialog-doc").val());
 
     var modifier = $("#property-dialog-modifier").val();
-    q.toggleClass("const", modifier == 'Konstante');
-    q.toggleClass('static', modifier == 'Klasseneigenschaft');
+    $p.toggleClass("const", modifier == 'Konstante');
+    $p.toggleClass('static', modifier == 'Klasseneigenschaft');
     
     if (this.currentProperty.parentNode == null) {
         $(this.currentClass).children("tj-properties").get(0).appendChild(this.currentProperty);
@@ -150,22 +150,22 @@ tidej.Editor.prototype.saveProperty = function() {
 }
 
 tidej.Editor.prototype.saveMethod = function() {
-    var q = $(this.currentMethod);
-    q.children('tj-name').text($('#method-dialog-name').val());
-    q.children('tj-type').text($('#method-dialog-type').val());
-    q.children('tj-body').text(this.codeMirror.getValue());
-    q.children('tj-doc').text($('#method-dialog-doc').val());
+    var $m = $(this.currentMethod);
+    $m.children('tj-name').text($('#method-dialog-name').val());
+    $m.children('tj-type').text($('#method-dialog-type').val());
+    $m.children('tj-body').text(this.codeMirror.getValue());
+    $m.children('tj-doc').text($('#method-dialog-doc').val());
     
     var modifier = $("#method-dialog-modifier").val();
-    q.toggleClass("static", modifier == "Klassenauftrag" || modifier == "Klassenanfrage");
-    q.toggleClass("constructor", modifier == "Constructor");
+    $m.toggleClass("static", modifier == "Klassenauftrag" || modifier == "Klassenanfrage");
+    $m.toggleClass("constructor", modifier == "Constructor");
     
-    var paramsQuery = q.find("tj-params");
-    paramsQuery.empty();
+    var $params = $m.find("tj-params");
+    $params.empty();
     $(".method-dialog-param").each(function() {
     	var inputs = $(this).find("input").get();
     	console.log(inputs);
-    	paramsQuery.append("<tj-param>" + 
+    	$params.append("<tj-param>" + 
     			"<tj-name>" + inputs[0].value + "</tj-name>" + 
     			"<tj-type>" + inputs[1].value + "</tj-type></tj-param>");
     });
@@ -177,13 +177,13 @@ tidej.Editor.prototype.saveMethod = function() {
 
 tidej.Editor.prototype.checkSyntax = function(text) {
 	try {
-		esprima.parse(text);
+		esprima.parse("function xyz() {\n" + text + "}");
 		return [];
 	} catch (error) {
 		console.log(error);
 		return[{
-			from: CodeMirror.Pos(error.lineNumber - 1, error.column - 1),
-            to: CodeMirror.Pos(error.lineNumber - 1, error.column - 1),
+			from: CodeMirror.Pos(error.lineNumber - 2, error.column - 1),
+            to: CodeMirror.Pos(error.lineNumber - 2, error.column - 1),
             message: error.description
 		}];
 	}
