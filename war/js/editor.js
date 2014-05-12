@@ -1,5 +1,6 @@
 
 tidej.Editor = function() {
+	this.codeMirror = null;
     this.currentClass = null;
     this.currentProperty = null;
     this.currentMethod = null;
@@ -8,7 +9,9 @@ tidej.Editor = function() {
     this.initUi();
     this.lastSaved = null;
     this.id = -1;
+    this.revision = null;
 }
+
 
 tidej.Editor.prototype.addClass = function () {
     var newClass = $("#templates tj-class").get(0).cloneNode(true);
@@ -24,6 +27,7 @@ tidej.Editor.prototype.addClass = function () {
     diagram.appendChild(newClass);
 }
 
+
 tidej.Editor.prototype.addProperty = function() {
 	this.saveClass();
 	$('#class-dialog').dialog('close');
@@ -31,12 +35,14 @@ tidej.Editor.prototype.addProperty = function() {
     this.openPropertyDialog(newProperty);
 }
 
+
 tidej.Editor.prototype.addMethod = function() {
 	this.saveClass();
 	$('#class-dialog').dialog('close');
     var newMethod = $("#templates tj-method").get(0).cloneNode(true);
     this.openMethodDialog(newMethod);
 }
+
 
 tidej.Editor.prototype.addParam = function(after, name, type) {
 	var row = "<tr class='horizontal method-dialog-param'>" +
@@ -49,131 +55,6 @@ tidej.Editor.prototype.addParam = function(after, name, type) {
 	$(after).closest('tr').after(row);
 }
 
-tidej.Editor.prototype.load = function() {
-	window.console.log('load triggered...');
-	this.stop();
-	if (tidej.runtime.params()['id'] != null) {
-		$("#diagram").text("Loading...")
-		tidej.runtime.load(function(meta, content) {
-			tidej.editor.initDiagram(meta, content);
-		});
-	}
-}
-
-tidej.Editor.prototype.removeParam = function(button) {
-	$(button).closest('tr').remove();
-}
-
-
-tidej.Editor.prototype.openClassDialog = function(classElement) {
-    this.currentClass = classElement;
-    var q = $(classElement);
-    $("#class-dialog-name").val(q.children("tj-name").text());
-    $("#class-dialog-doc").val(q.children("tj-doc").text());
-    $("#class-dialog-application").prop('checked', q.hasClass("application"));
-    $("#class-dialog").dialog('open');
-}
-
-tidej.Editor.prototype.openPropertyDialog = function(propertyElement) {
-    this.currentProperty = propertyElement;
-    var q = $(propertyElement);
-    $("#property-dialog-name").val(q.children("tj-name").text());
-    $("#property-dialog-type").val(q.children("tj-type").text());
-    $("#property-dialog-value").val(q.children("tj-value").text());
-    $("#property-dialog-doc").val(q.children("tj-doc").text());
-    var modifier = q.hasClass("const") ? "Konstante" : q.hasClass("static") ? "Klasseneigenschaft" : "Eigenschaft";
-    $("#property-dialog-modifier").val(modifier); 
-    $("#property-dialog").dialog('open');
-}
-
-tidej.Editor.prototype.openMethodDialog = function(methodElement) {
-    this.currentMethod = methodElement;
-    var q = $(methodElement);
-    $("#method-dialog-name").val(q.children("tj-name").text());
-    var type = q.children("tj-type").text();
-    $("#method-dialog-type").val(type);
-    $("#method-dialog-doc").val(q.children("tj-doc").text());
-    		
-    this.codeMirror.setValue(q.children("tj-body").text());
-    
-    var modifier;
-    if (q.hasClass("constructor")) {
-    	modifier = "Konstructor";
-    } else if (type) {
-    	modifier = q.hasClass("static") ? "Klassenanfrage" : "Anfrage";
-    } else {
-    	modifier = q.hasClass("static") ? "Klassenauftrag" : "Auftrag";
-    }
-    $("#property-dialog-modifier").val(modifier); 
-
-    $(".method-dialog-param").remove();
-    var insertAfter = $('#method-dialog-name').get(0);
-    q.find("tj-param").each(function() {
-        tidej.editor.addParam(insertAfter,
-        		$(this).children("tj-name").text(),
-        		$(this).children("tj-type").text());
-    	insertAfter = $(".method-dialog-param").last().get(0);
-    });
-    $("#method-dialog").dialog('open');
-}
-
-tidej.Editor.prototype.saveClass = function() {
-    var q = $(this.currentClass);
-    q.children("tj-name").text($("#class-dialog-name").val());
-    q.children("tj-doc").text($("#class-dialog-doc").val());
-    if (this.currentClass.parentNode == null) {
-        document.getElementById("diagram").appendChild(this.currentClass);
-    }
-    
-    if ($("#class-dialog-application").is(':checked')) {
-    	$("tj-class").removeClass("application");
-        q.addClass("application");
-    } else {
-        q.removeClass("application");
-    }
-}
-
-tidej.Editor.prototype.saveProperty = function() {
-    var $p = $(this.currentProperty);
-    $p.children("tj-name").text($("#property-dialog-name").val());
-    $p.children("tj-type").text($("#property-dialog-type").val());
-    $p.children("tj-value").text($("#property-dialog-value").val());
-    $p.children("tj-doc").text($("#property-dialog-doc").val());
-
-    var modifier = $("#property-dialog-modifier").val();
-    $p.toggleClass("const", modifier == 'Konstante');
-    $p.toggleClass('static', modifier == 'Klasseneigenschaft');
-    
-    if (this.currentProperty.parentNode == null) {
-        $(this.currentClass).children("tj-properties").get(0).appendChild(this.currentProperty);
-    }
-}
-
-tidej.Editor.prototype.saveMethod = function() {
-    var $m = $(this.currentMethod);
-    $m.children('tj-name').text($('#method-dialog-name').val());
-    $m.children('tj-type').text($('#method-dialog-type').val());
-    $m.children('tj-body').text(this.codeMirror.getValue());
-    $m.children('tj-doc').text($('#method-dialog-doc').val());
-    
-    var modifier = $("#method-dialog-modifier").val();
-    $m.toggleClass("static", modifier == "Klassenauftrag" || modifier == "Klassenanfrage");
-    $m.toggleClass("constructor", modifier == "Constructor");
-    
-    var $params = $m.find("tj-params");
-    $params.empty();
-    $(".method-dialog-param").each(function() {
-    	var inputs = $(this).find("input").get();
-    	console.log(inputs);
-    	$params.append("<tj-param>" + 
-    			"<tj-name>" + inputs[0].value + "</tj-name>" + 
-    			"<tj-type>" + inputs[1].value + "</tj-type></tj-param>");
-    });
-    
-    if (this.currentMethod.parentNode == null) {
-        $(this.currentClass).children("tj-methods").get(0).appendChild(this.currentMethod);
-    }
-}
 
 tidej.Editor.prototype.checkSyntax = function(text) {
 	try {
@@ -188,6 +69,15 @@ tidej.Editor.prototype.checkSyntax = function(text) {
 		}];
 	}
 };
+
+tidej.Editor.prototype.initDiagram = function(content, meta) {
+	$("#diagram").html(content);
+	this.lastSaved = content;
+	this.revision = meta['rev'];
+	$("#revision").text(this.revision);
+	$("tj-class").draggable();
+};
+
 
 tidej.Editor.prototype.initUi = function() {
 	var self = this;
@@ -329,20 +219,164 @@ tidej.Editor.prototype.initUi = function() {
 			}
 			element = element.parentNode;
 		}
-    
 	});
+};
+
+
+
+tidej.Editor.prototype.load = function() {
+	window.console.log('load triggered...');
+	this.stop();
+	if (tidej.runtime.params()['id'] != null) {
+		$("#diagram").text("Loading...")
+		tidej.runtime.load(function(meta, content) {
+			tidej.editor.initDiagram(meta, content);
+		});
+	}
+}
+
+
+tidej.Editor.prototype.openClassDialog = function(classElement) {
+    this.currentClass = classElement;
+    var q = $(classElement);
+    $("#class-dialog-name").val(q.children("tj-name").text());
+    $("#class-dialog-doc").val(q.children("tj-doc").text());
+    $("#class-dialog-application").prop('checked', q.hasClass("application"));
+    $("#class-dialog").dialog('open');
+}
+
+
+tidej.Editor.prototype.openPropertyDialog = function(propertyElement) {
+    this.currentProperty = propertyElement;
+    var q = $(propertyElement);
+    $("#property-dialog-name").val(q.children("tj-name").text());
+    $("#property-dialog-type").val(q.children("tj-type").text());
+    $("#property-dialog-value").val(q.children("tj-value").text());
+    $("#property-dialog-doc").val(q.children("tj-doc").text());
+    var modifier = q.hasClass("const") ? "Konstante" : q.hasClass("static") ? "Klasseneigenschaft" : "Eigenschaft";
+    $("#property-dialog-modifier").val(modifier); 
+    $("#property-dialog").dialog('open');
+}
+
+
+tidej.Editor.prototype.openMethodDialog = function(methodElement) {
+    this.currentMethod = methodElement;
+    var q = $(methodElement);
+    $("#method-dialog-name").val(q.children("tj-name").text());
+    var type = q.children("tj-type").text();
+    $("#method-dialog-type").val(type);
+    $("#method-dialog-doc").val(q.children("tj-doc").text());
+    		
+    this.codeMirror.setValue(q.children("tj-body").text());
     
- 
-};
+    var modifier;
+    if (q.hasClass("constructor")) {
+    	modifier = "Konstructor";
+    } else if (type) {
+    	modifier = q.hasClass("static") ? "Klassenanfrage" : "Anfrage";
+    } else {
+    	modifier = q.hasClass("static") ? "Klassenauftrag" : "Auftrag";
+    }
+    $("#property-dialog-modifier").val(modifier); 
 
-tidej.Editor.prototype.initDiagram = function(content, meta) {
-	$("#diagram").html(content);
-	this.lastSaved = content;
-	this.revision = meta['rev'];
-	$("#revision").text(this.revision);
-	$("tj-class").draggable();
-};
+    $(".method-dialog-param").remove();
+    var insertAfter = $('#method-dialog-name').get(0);
+    q.find("tj-param").each(function() {
+        tidej.editor.addParam(insertAfter,
+        		$(this).children("tj-name").text(),
+        		$(this).children("tj-type").text());
+    	insertAfter = $(".method-dialog-param").last().get(0);
+    });
+    $("#method-dialog").dialog('open');
+}
 
+
+tidej.Editor.prototype.removeParam = function(button) {
+	$(button).closest('tr').remove();
+}
+
+
+tidej.Editor.prototype.saveClass = function() {
+    var q = $(this.currentClass);
+    q.children("tj-name").text($("#class-dialog-name").val());
+    q.children("tj-doc").text($("#class-dialog-doc").val());
+    if (this.currentClass.parentNode == null) {
+        document.getElementById("diagram").appendChild(this.currentClass);
+    }
+    
+    if ($("#class-dialog-application").is(':checked')) {
+    	$("tj-class").removeClass("application");
+        q.addClass("application");
+    } else {
+        q.removeClass("application");
+    }
+}
+
+tidej.Editor.prototype.saveProperty = function() {
+    var $p = $(this.currentProperty);
+    $p.children("tj-name").text($("#property-dialog-name").val());
+    $p.children("tj-type").text($("#property-dialog-type").val());
+    $p.children("tj-value").text($("#property-dialog-value").val());
+    $p.children("tj-doc").text($("#property-dialog-doc").val());
+
+    var modifier = $("#property-dialog-modifier").val();
+    $p.toggleClass("const", modifier == 'Konstante');
+    $p.toggleClass('static', modifier == 'Klasseneigenschaft');
+    
+    if (this.currentProperty.parentNode == null) {
+        $(this.currentClass).children("tj-properties").get(0).appendChild(this.currentProperty);
+    }
+}
+
+tidej.Editor.prototype.saveMethod = function() {
+    var $m = $(this.currentMethod);
+    $m.children('tj-name').text($('#method-dialog-name').val());
+    $m.children('tj-type').text($('#method-dialog-type').val());
+    $m.children('tj-body').text(this.codeMirror.getValue());
+    $m.children('tj-doc').text($('#method-dialog-doc').val());
+    
+    var modifier = $("#method-dialog-modifier").val();
+    $m.toggleClass("static", modifier == "Klassenauftrag" || modifier == "Klassenanfrage");
+    $m.toggleClass("constructor", modifier == "Constructor");
+    
+    var $params = $m.find("tj-params");
+    $params.empty();
+    $(".method-dialog-param").each(function() {
+    	var inputs = $(this).find("input").get();
+    	console.log(inputs);
+    	$params.append("<tj-param>" + 
+    			"<tj-name>" + inputs[0].value + "</tj-name>" + 
+    			"<tj-type>" + inputs[1].value + "</tj-type></tj-param>");
+    });
+    
+    if (this.currentMethod.parentNode == null) {
+        $(this.currentClass).children("tj-methods").get(0).appendChild(this.currentMethod);
+    }
+}
+
+
+tidej.Editor.prototype.run = function(fullscreen) {
+	var self = this;
+	if (fullscreen) {
+		this.save(function() {
+			var url = 'run.html#id=' + tidej.runtime.params()['id'] + ';rev=' + self.revision;
+			window.console.log(url);
+			var win = window.open(url, '_blank');
+			win.focus();
+		});
+	} else {
+		this.save(function() {
+			self.stop(function() {
+				$('#stop-button').button('enable');
+				var iframe = document.getElementById('run');
+				iframe.onload = function() {
+					iframe.contentWindow.tidej.runtime.run($('#diagram').html(), self);
+				}
+				iframe.setAttribute('src', 'run.html');
+			});
+		});
+	}
+}
 
 tidej.Editor.prototype.save = function(callback) {
 	var content = $("#diagram").html();
@@ -364,14 +398,15 @@ tidej.Editor.prototype.save = function(callback) {
 	if (id != null && secret != null) {
 		path += "?id=" + id + "&secret=" + secret;
 	}
+	var self = this;
 	xmlhttp.open("POST", path, true);
 	xmlhttp.onreadystatechange = function() {
 		if (xmlhttp.readyState == 4) {
 			var meta = tidej.runtime.parseParams(xmlhttp.responseText);
 			var newId = meta['id'];
-			this.revision = meta['rev'];
+			self.revision = meta['rev'];
 			window.console.log("id", id, "ret-meta:", meta);
-			$("#revision").text(this.revision);
+			$("#revision").text(self.revision);
 			if (id != newId) {
 				history.pushState(null, null, "#id=" + newId + ";secret=" + meta['secret']);
 			}
@@ -414,29 +449,6 @@ tidej.Editor.prototype.showError = function(className, memberName, line, message
 		}
 	}
 	window.alert(message);
-}
-
-tidej.Editor.prototype.run = function(fullscreen) {
-	var self = this;
-	if (fullscreen) {
-		this.save(function() {
-			var url = 'run.html#id=' + tidej.runtime.params()['id'] + ';rev=' + self.revision;
-			window.console.log(url);
-			var win = window.open(url, '_blank');
-			win.focus();
-		});
-	} else {
-		this.save(function() {
-			self.stop(function() {
-				$('#stop-button').button('enable');
-				var iframe = document.getElementById('run');
-				iframe.onload = function() {
-					iframe.contentWindow.tidej.runtime.run($('#diagram').html(), self);
-				}
-				iframe.setAttribute('src', 'run.html');
-			});
-		});
-	}
 }
 
 tidej.editor = new tidej.Editor();
