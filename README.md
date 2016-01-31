@@ -3,6 +3,8 @@ tidej
 
 Random stabs at a tiny IDE for JavaScript
 
+Demos:
+
 - [Version 1](http://tidejapp.appspot.com/#): GWT based (2011)
 - [Version 2](http://tidejnet.appspot.com/v2/): "BlueJ meets jsbin" (2014)
     - [Haus des Nikolaus](http://tidejnet.appspot.com/#id=mdujlmputkx0)
