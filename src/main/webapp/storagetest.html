@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Hello App Engine</title>
+    
+    <script>
+    	function save() {
+    		var content = document.getElementById("content").value;
+    		//window.alert(content);
+    		
+        	xmlhttp = new XMLHttpRequest();
+        	var path = "storage";
+			var id = document.getElementById("id").value;
+			if (id != '') {
+				path += "?id=" + id;
+			}
+        	xmlhttp.open("POST", path, true);
+        	xmlhttp.onreadystatechange = function() {
+       			if (xmlhttp.readyState == 4) {
+  					var o = eval('(' + xmlhttp.responseText + ')');
+  					document.getElementById("id").value = o['id'];
+  					document.getElementById("rev").value = o['rev'];
+        	  	}
+        	 }
+        	xmlhttp.send(content);
+    	}
+    	
+    	function load() {
+			var id = document.getElementById("id").value;
+			var path = "storage?id=" + id;
+			var rev = document.getElementById("rev").value;
+			if (rev != null && rev != "") {
+				path += "&rev=" + rev;
+			}
+    		xmlhttp.open("GET", path, true);
+        	xmlhttp.onreadystatechange = function() {
+       			if (xmlhttp.readyState == 4) {
+  					document.getElementById("content").value = xmlhttp.responseText;
+        	  	}
+        	 }
+        	xmlhttp.send(content);
+    	}
+    </script>
+    
+  </head>
+
+  <body>
+    <h1>Tidej storage test</h1>
+
+    <table>
+    <tr><td>id</td><td><input id="id"></td></tr>
+    <tr><td>rev</td><td><input id="rev"></input></td></tr>
+    <tr><td>content</td><td><textarea id="content"></textarea></td></tr>
+    </table>
+    
+	<button onclick="load()">Load</button>
+	<button onclick="save()">Save</button>
+
+
+  </body>
+</html>

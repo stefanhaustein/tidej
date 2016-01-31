@@ -2,6 +2,7 @@ package net.tidej.storage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 
@@ -12,7 +13,6 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Text;
-import com.google.appengine.labs.repackaged.com.google.common.collect.Lists;
 
 @SuppressWarnings("serial")
 public class StorageServlet extends HttpServlet {
@@ -37,7 +37,10 @@ public class StorageServlet extends HttpServlet {
 		if (revRaw != null && !revRaw.trim().equals("")) {
 			int rev = Integer.parseInt(revRaw);
 			Query.Filter revFilter = new Query.FilterPredicate(FIELD_REV, Query.FilterOperator.EQUAL, rev);
-			filter = new Query.CompositeFilter(Query.CompositeFilterOperator.AND, Lists.newArrayList(filter, revFilter));
+		  	ArrayList<Query.Filter> filterList = new ArrayList<>();
+		  	filterList.add(filter);
+		  	filterList.add(revFilter);
+			filter = new Query.CompositeFilter(Query.CompositeFilterOperator.AND, filterList);
 		} else {
 			query.addSort(FIELD_REV, Query.SortDirection.DESCENDING);
 		}
