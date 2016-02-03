@@ -1,6 +1,6 @@
 body {
   background-color: #eee;
-  margin: 0;
+  margin: 40px 0 0 0;
   padding: 0;
   border: 0;
   height: 100%;
@@ -13,6 +13,28 @@ body {
   font-size: 15px;
   max-width: 800px;
   font-family: droid,arial,sans-serif;
+}
+
+.menu-title:hover {
+  background-color: darkgreen;
+  color: white;
+}
+
+.menu-title {
+  float: left;
+  padding: 20px;
+  font-weight: bold;  
+}
+
+
+.menu-entry {
+    background-color:white;
+    border-bottom:1px solid gray;
+    padding:10px;
+}
+.menu-entry:hover {
+    background-color:gray;
+    color:white;
 }
 
 tj-section-title {

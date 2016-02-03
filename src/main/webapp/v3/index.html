@@ -8,6 +8,20 @@
 <body>
 <iframe id="run" src="run.html" frameborder="0" style="display:none;width:100%;height:100%;position:absolute;top:0;bottom:0;left:0;right:0"></iframe>
 <div id="editor">
+<div id="topbar" style="position:fixed;background-color:lightgreen;top:0;left:0;width:100%">
+  <div class="menu-title" jsaction="showMenu">Tidej</div>
+  <div class="menu-title" style="float:right" onclick="run()">&#9654;</div>
+</div>
+  
+<div id="menu" style="width:200px;display:none;position:fixed;top:55px;left:0;border:1px solid grey;border-bottom:0">
+  <div class="menu-entry">Add Constants</div>
+  <div class="menu-entry">Add Globals</div>
+  <div class="menu-entry">Add Function</div>
+  <div class="menu-entry">Add Class</div>
+  <div class="menu-entry">Add Main body</div>
+</div>
+  
+
 <tj-program>
 <tj-section-title>Prolog</tj-section-title>
 
@@ -135,10 +149,6 @@ update();
 
 </tj-section>
 </tj-program>
-
-<div style="position:fixed;right:16px;bottom:16px;padding:18px 22px;box-sizing:border-box;background-color:red;color:white;width:56px;height:56px;border-radius:27px;font-size:18px;" 
-     onclick="run()">&#9654;</div>
-</div>    
 
 <script src="editor.js"></script>
 </body>

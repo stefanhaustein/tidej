@@ -1,5 +1,6 @@
 var selectedOperation = null;
 var selectedClass = null;
+var menuVisible = false;
   
 function run() {
   var iframe = document.getElementById("run");
@@ -7,6 +8,17 @@ function run() {
   document.getElementById("editor").style.display="none";
   iframe.contentWindow.run(buildCode(document.querySelector('tj-program')));
 }
+  
+
+function handleJsaction(name, element, event) {
+  switch(name) {
+    case "showMenu":
+      document.getElementById("menu").style.display="";
+      menuVisible = true;
+      break;      
+  }  
+}
+
   
 function autoresize(ta) {
   ta.style.height = 'auto';
@@ -53,11 +65,23 @@ document.body.oninput = function(event) {
 }
   
   
+  
 document.body.onclick = function(event) {
   var element = event.target;
-      
+
   while (element != null && element.localName != 'tj-signature') {
+    var jsaction = element.getAttribute && element.getAttribute("jsaction");
+    if (jsaction) {
+      handleJsaction(jsaction, element, event);
+      return;
+    }
     element = element.parentNode;
+  }
+
+  if (menuVisible) {
+    document.getElementById('menu').style.display = "none";
+    menuVisible = false;
+    return;
   }
 
   if (element != null) {
