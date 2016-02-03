@@ -1,0 +1,89 @@
+body {
+  background-color: #eee;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  height: 100%;
+}  
+
+#editor {
+  margin-left: auto;
+  margin-right: auto;
+  padding: 16px;
+  font-size: 15px;
+  max-width: 800px;
+  font-family: droid,arial,sans-serif;
+}
+
+tj-section-title {
+   margin: 16px 32px 8px 32px;
+   color: gray;
+   display: block;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+tj-class,
+tj-operation {
+    margin-left: 16px;
+    margin-right: 16px;
+    border: 1px solid lightgray;
+    background-color: white;
+    display: block;
+    margin-bottom: -1px;
+    padding: 0;
+}
+
+tj-signature {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  padding: 8px 16px;
+}
+
+tj-body {
+    display: none;
+}
+
+tj-operation.selected {
+    margin: 8px 0;
+}
+
+tj-operation.selected > tj-signature {
+    padding: 12px 32px;
+    font-weight: bold;
+}
+    
+tj-operation.selected > tj-body {
+    display: block;
+    border-top: 1px solid lightgray;
+    padding: 8px 32px;
+}
+
+
+tj-class.selected {
+    background-color: lightgray;
+    margin: 16px 0;
+    padding-bottom: 12px;
+    border: 0;
+}
+tj-class.selected > tj-signature {
+    padding: 16px 32px;
+    font-weight: bold;
+}
+tj-class.selected > tj-body {
+    display: block;
+}
+
+textarea { 
+    border: 0 none white;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    outline: none;
+    resize: none;
+    width:100%;
+    font-size: 12px;
+}

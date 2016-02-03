@@ -196,7 +196,7 @@ tidej.runtime.load = function(callback) {
 	if (id == null) {
 		return;
 	}
-	var path = "storage?id=" + id;
+	var path = "/storage?id=" + id;
 	var rev = params['rev'];
 	if (rev != null) {
 		path += "&rev=" + rev;

@@ -407,7 +407,7 @@ tidej.Editor.prototype.save = function(callback) {
 	this.lastSaved = content;
 
 	xmlhttp = new XMLHttpRequest();
-	var path = "storage";
+	var path = "/storage";
 	var params = tidej.runtime.params();
 	var id = params['id'];
 	var secret = params['secret'];

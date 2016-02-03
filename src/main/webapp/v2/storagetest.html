@@ -9,7 +9,7 @@
     		//window.alert(content);
     		
         	xmlhttp = new XMLHttpRequest();
-        	var path = "storage";
+        	var path = "/storage";
 			var id = document.getElementById("id").value;
 			if (id != '') {
 				path += "?id=" + id;
@@ -27,7 +27,7 @@
     	
     	function load() {
 			var id = document.getElementById("id").value;
-			var path = "storage?id=" + id;
+			var path = "/storage?id=" + id;
 			var rev = document.getElementById("rev").value;
 			if (rev != null && rev != "") {
 				path += "&rev=" + rev;
