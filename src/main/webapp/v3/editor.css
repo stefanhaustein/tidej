@@ -37,7 +37,7 @@ body {
     color:white;
 }
 
-tj-section-title {
+tj-section-name {
    margin: 16px 32px 8px 32px;
    color: gray;
    display: block;
@@ -46,6 +46,7 @@ tj-section-title {
    white-space: nowrap;
 }
 
+tj-block,
 tj-class,
 tj-operation {
     margin-left: 16px;
@@ -57,7 +58,10 @@ tj-operation {
     padding: 0;
 }
 
-tj-signature {
+tj-block-name,
+tj-class-name,
+tj-operation-signature,
+tj-class-signature {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -65,20 +69,25 @@ tj-signature {
   padding: 8px 16px;
 }
 
-tj-body {
+tj-block-body,
+tj-class-body,
+tj-operation-body {
     display: none;
 }
 
+tj-block.selected,
 tj-operation.selected {
     margin: 8px 0;
 }
 
-tj-operation.selected > tj-signature {
+tj-block.selected > tj-block-name,
+tj-operation.selected > tj-operation-signature {
     padding: 12px 32px;
     font-weight: bold;
 }
     
-tj-operation.selected > tj-body {
+tj-block.selected > tj-block-body,
+tj-operation.selected > tj-operation-body {
     display: block;
     border-top: 1px solid lightgray;
     padding: 8px 32px;
@@ -91,11 +100,11 @@ tj-class.selected {
     padding-bottom: 12px;
     border: 0;
 }
-tj-class.selected > tj-signature {
+tj-class.selected > tj-class-signature {
     padding: 16px 32px;
     font-weight: bold;
 }
-tj-class.selected > tj-body {
+tj-class.selected > tj-class-body {
     display: block;
 }
 

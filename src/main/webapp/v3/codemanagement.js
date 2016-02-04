@@ -1,7 +1,7 @@
 
 function buildOperation(operationElement, className) {
-  var signature = operationElement.querySelector('tj-signature').textContent;
-  var body = operationElement.querySelector('tj-body').textContent;
+  var signature = operationElement.querySelector('tj-operation-signature').textContent;
+  var body = operationElement.querySelector('tj-operation-body').textContent;
   
   var prefix;
   if (className) {
@@ -21,8 +21,8 @@ function buildOperation(operationElement, className) {
 } 
 
 function buildClass(classElement) {
-  var className = classElement.querySelector('tj-signature').textContent;
-  var body = classElement.querySelector('tj-body');
+  var className = classElement.querySelector('tj-class-name').textContent;
+  var body = classElement.querySelector('tj-class-body');
   return buildCode(body, className);
 }
 
@@ -31,6 +31,9 @@ function buildCode(rootElement, className) {
   var element = rootElement.firstElementChild;
   while (element != null) {
     switch (element.localName) {
+    case 'tj-block':
+      result += element.querySelector('tj-block-body').textContent;
+      break;
     case 'tj-operation':
       result += buildOperation(element, className);
       break;
@@ -40,6 +43,8 @@ function buildCode(rootElement, className) {
       }
       result += buildClass(element);
       break;
+    default:
+      result += buildCode(element, className);
     } 
     element = element.nextElementSibling;
   }

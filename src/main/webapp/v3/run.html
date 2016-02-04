@@ -3,16 +3,22 @@
      <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>    
 <body>
-   
-</div>    
-
+<tj-program id="program" style="display:none"></tj-program>
+<script src="codemanagement.js"></script>
 <script>
-    function run(code) {
-       window.console.log(code);
-       var script = document.createElement("script");
-       script.textContent = code;
-       document.body.appendChild(script);
-    }
+var programName = localStorage.getItem("currentProgramName");
+var programXml = localStorage.getItem("program-" + programName);
+
+var programElement = document.getElementById("program");
+programElement.innerHTML = programXml;
+
+var code = buildCode(programElement);
+
+window.console.log(code);
+var script = document.createElement("script");
+script.textContent = code;
+document.body.appendChild(script);
+
 </script>
     
 </body>

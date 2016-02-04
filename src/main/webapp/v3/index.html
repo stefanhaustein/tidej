@@ -6,47 +6,52 @@
   <link rel="stylesheet" type="text/css" href="editor.css">        
 </head>
 <body>
-<iframe id="run" src="run.html" frameborder="0" style="display:none;width:100%;height:100%;position:absolute;top:0;bottom:0;left:0;right:0"></iframe>
 <div id="editor">
 <div id="topbar" style="position:fixed;background-color:lightgreen;top:0;left:0;width:100%">
-  <div class="menu-title" jsaction="showMenu">Tidej</div>
+  <div class="menu-title" jsaction="showMenu">&#9776;&nbsp;&nbsp;<span id="title">Planets</span></div>
   <div class="menu-title" style="float:right" onclick="run()">&#9654;</div>
 </div>
   
 <div id="menu" style="width:200px;display:none;position:fixed;top:55px;left:0;border:1px solid grey;border-bottom:0">
-  <div class="menu-entry">Add Constants</div>
-  <div class="menu-entry">Add Globals</div>
-  <div class="menu-entry">Add Function</div>
-  <div class="menu-entry">Add Class</div>
-  <div class="menu-entry">Add Main body</div>
+  <div class="menu-entry" jsaction="constants">Constants</div>
+  <div class="menu-entry" jsaction="globals">Globals Variables</div>
+  <div class="menu-entry" jsaction="add-function">Add Function</div>
+  <div class="menu-entry" jsaciton="add-class">Add Class</div>
+  <div class="menu-entry" jsaction="new-program">New Program</div>
 </div>
   
+<tj-program id="program">
+<tj-section id="values">
+<tj-section-name>Values</tj-section-name>
+<tj-section-body>
 
-<tj-program>
-<tj-section-title>Prolog</tj-section-title>
-
-<tj-operation>
-  <tj-signature>Constants</tj-signature>
-  <tj-body>
-    <textarea>var G = 6.67428e-11;
+<tj-block id="constants">
+<tj-block-name>Constants</tj-block-name>
+<tj-block-body>
+<textarea>var G = 6.67428e-11;
 var TIMESCALE = 525600 * 6; // 6 x Minutes per year
 var SCALE = 1e-9;
 var OC = "https://openclipart.org/download/";</textarea>
-  </tj-body>
-</tj-operation>
-<tj-operation>
-  <tj-signature>Globals</tj-signature>
-  <tj-body>
-    <textarea>var bodies = [];</textarea>
-  </tj-body>
-</tj-operation>
+</tj-block-body>
+</tj-block>
 
-<tj-section-title>Functions</tj-section-title>
+<tj-block id="globals">
+<tj-block-name>Global Variables</tj-block-name>
+<tj-block-body>
+<textarea>var bodies = [];</textarea>
+</tj-block-body>
+</tj-block>
+
+</tj-section-body>
+</tj-section>
+
+<tj-section id="functions">
+<tj-section-name>Functions</tj-section-name>
 
 <tj-operation>
-  <tj-signature>update()</tj-signature>
-  <tj-body>
-    <textarea>for (var i = 0; i < bodies.length; i++) {
+<tj-operation-signature>update()</tj-operation-signature>
+<tj-operation-body>
+<textarea>for (var i = 0; i < bodies.length; i++) {
   var bodyI = bodies[i];
   for (var j = 0; j < bodies.length; j++) {
     if (i != j) {
@@ -56,18 +61,21 @@ var OC = "https://openclipart.org/download/";</textarea>
   bodyI.update(TIMESCALE / 60);
 }
 window.requestAnimationFrame(update);</textarea>
-  </tj-body>
+</tj-operation-body>
 </tj-operation>
 
+</tj-section>
 
-<tj-section-title>Classes</tj-section-title>
+<tj-section id="classes">
+<tj-section-name>Classes</tj-section-name>
+
 <tj-class>
-<tj-signature>Body</tj-signature>
-<tj-body>
-  <tj-operation>
-    <tj-signature>constructor(mass, distance, speed, size, color)</tj-signature>
-    <tj-body>
-      <textarea>this.mass = mass;
+<tj-class-name>Body</tj-class-name>
+<tj-class-body>
+<tj-operation>
+<tj-operation-signature>constructor(mass, distance, speed, size, color)</tj-operation-signature>
+<tj-operation-body>
+<textarea>this.mass = mass;
 this.x = 0;
 this.y = -distance;
 this.vx = speed;
@@ -82,25 +90,26 @@ this.img.style.borderRadius = size/2 + "px";
 this.img.style.backgroundColor = color;
 this.img.style.position = "absolute";
 document.body.appendChild(this.img);</textarea>
-    </tj-body>
-  </tj-operation>
-  <tj-section-title>Operations</tj-section-title>
-  <tj-operation>
-    <tj-signature>addAttraction(other)</tj-signature>
-    <tj-body>
-      <textarea>var dx = other.x - this.x;
+</tj-body>
+</tj-operation>
+  
+<tj-operation>
+<tj-operation-signature>addAttraction(other)</tj-operation-signature>
+<tj-operation-body>
+<textarea>var dx = other.x - this.x;
 var dy = other.y - this.y;
 var r2 = dx * dx + dy * dy;  
 var f = G * this.mass * other.mass / r2; // * this.mass / d;
 var th = Math.atan2(dy, dx);
 this.fx += f * Math.cos(th);
 this.fy += f * Math.sin(th);</textarea>
-    </tj-body>
-  </tj-operation>
-  <tj-operation>
-    <tj-signature>update(dt)</tj-signature>
-    <tj-body>
-      <textarea>this.vx += dt * this.fx / this.mass;
+</tj-operation-body>
+</tj-operation>
+
+<tj-operation>
+<tj-operation-signature>update(dt)</tj-operation-signature>
+<tj-operation-body>
+<textarea>this.vx += dt * this.fx / this.mass;
 this.vy += dt * this.fy / this.mass;
 this.x += this.vx * dt;
 this.y += this.vy * dt;
@@ -112,19 +121,20 @@ this.img.style.top =
     this.y * SCALE + "px";
 this.fx = 0;
 this.fy = 0;</textarea>
-    </tj-body>
-  </tj-operation>
+</tj-operation-body>
+</tj-operation>
 </tj-body>
 
 </tj-class>
 
+</tj-section>
+<tj-section>
+<tj-section-name>Main</tj-section-name>
 
-<tj-section-title>Epilog</tj-section-title>
-
-<tj-operation>
-  <tj-signature>Main program</tj-signature>
-  <tj-body>
-    <textarea>bodies.push(new Body(
+<tj-block id="main">
+<tj-block-name>Program Body</tj-block-name>
+<tj-block-body>
+<textarea>bodies.push(new Body(
   1.99e30, 0, 0, 24, "#ffa"));
 
 bodies.push(new Body(
@@ -144,8 +154,8 @@ document.body.style.backgroundColor = "black";
 update();
 
 </textarea>
-  </tj-body>
-</tj-operation>
+</tj-block-body>
+</tj-block>
 
 </tj-section>
 </tj-program>
