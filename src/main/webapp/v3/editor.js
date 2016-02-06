@@ -33,23 +33,19 @@ function save() {
   localStorage.setItem("program-" + currentProgramName, program);
 }
   
-function run() {
-  save();
-  window.location = "run.html";
-}
-  
 
 function handleJsaction(name, element, event) {
   switch(name) {
+    case 'constants':
+    case 'globals':
+      select(document.getElementById(name));
+      break;
+
     case "showMenu":
       document.getElementById("menu").style.display="";
       menuVisible = true;
       break;
 
-    case 'constants':
-    case 'globals':
-      select(document.getElementById(name));
-      break;
 
     case 'new-program':
       var newName = window.prompt("Program name");
@@ -63,9 +59,15 @@ function handleJsaction(name, element, event) {
         selectedClass = null;
         document.body.querySelector('tj-program').innerHTML = xml;
         document.getElementById('title').textContent = newName;
+        document.title = newName;
       }
       break;
 
+    case 'run':
+      save();
+      window.location = "run.html";
+      break;
+      
     case 'delete-program':
       selectedOperation = null;
       selectedClass = null;

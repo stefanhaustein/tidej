@@ -12,9 +12,10 @@ var programXml = localStorage.getItem("program-" + programName);
 var programElement = document.getElementById("program");
 programElement.innerHTML = programXml;
 
-var code = buildCode(programElement);
+var map = {};
+var code = buildCode(map, 0, programElement);
 
-window.console.log(code);
+window.console.log(map);
 var script = document.createElement("script");
 script.textContent = code;
 document.body.appendChild(script);

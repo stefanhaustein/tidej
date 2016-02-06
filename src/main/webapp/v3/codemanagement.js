@@ -1,52 +1,70 @@
+function countLines(code) {
+  var count = 0;
+  var pos = 0;
+  while (true) {
+    pos = code.indexOf('\n', pos) + 1;
+    if (pos == 0) {
+      break;
+    }
+    count++;
+  }
+  return count;
+}
 
-function buildOperation(operationElement, className) {
+function buildOperation(map, line, operationElement, className) {
   var signature = operationElement.querySelector('tj-operation-signature').textContent;
   var body = operationElement.querySelector('tj-operation-body').textContent;
-  
   var prefix;
   if (className) {
+    map[line] = className + "." + signature;
     var cut = signature.indexOf('(');
     if (signature.startsWith("constructor")) {
       prefix = "function " + className + signature.substr(cut);
     } else {
       prefix = className + ".prototype." + signature.substr(0, cut) + " = function" + signature.substr(cut);
     }
-  } else if (signature == "Constants" || signature == "Globals" || signature == "Main program") {
-      return body;
   } else {
+    map[line] = signature;
     prefix = 'function ' + signature;
   }
-  
-  return prefix + '{\n' + body + '\n}\n';
+  return prefix + '{\n' + body + '\n}\n\n';
 } 
 
-function buildClass(classElement) {
+function buildClass(map, line, classElement) {
   var className = classElement.querySelector('tj-class-name').textContent;
   var body = classElement.querySelector('tj-class-body');
-  return buildCode(body, className);
+  map[line] = className;
+  return buildCode(map, line, body, className);
 }
 
-function buildCode(rootElement, className) {
-  var result = '';
+function buildCode(map, line, rootElement, className) {
   var element = rootElement.firstElementChild;
+  var result = '';
   while (element != null) {
+    var code = '';
     switch (element.localName) {
     case 'tj-block':
-      result += element.querySelector('tj-block-body').textContent;
+      map[line] = element.querySelector('tj-block-name').textContent;
+      code = element.querySelector('tj-block-body').textContent;
       break;
+      
     case 'tj-operation':
-      result += buildOperation(element, className);
+      code = buildOperation(map, line, element, className);
       break;
+      
     case 'tj-class':
       if (className) {
         throw new Error("Nested class!");
       }
-      result += buildClass(element);
+      code = buildClass(map, line, element); 
       break;
+      
     default:
-      result += buildCode(element, className);
+      code = buildCode(map, line, element, className);
     } 
     element = element.nextElementSibling;
+    line += countLines(code);
+    result += code;
   }
   return result;
 }
