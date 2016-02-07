@@ -1,7 +1,7 @@
 var lastSaved;
 
 function parseParams(s) {
-    	var parts = s.split(';');
+    var parts = s.split(';');
 	var result = {};
 	for (var i = 0; i < parts.length; i++) {
 		var part = parts[i];
@@ -13,18 +13,8 @@ function parseParams(s) {
 	return result;
 }
 
-function loadContent(id, rev, callback) {
-  var params = tidej.runtime.params();
-  var id = params['id'];
-  if (id == null) {
-	return;
-  }
-  var path = "/storage?id=" + id;
-  if (rev != null) {
-	path += "&rev=" + rev;
-  } else {
-	path += "&cache-poison=" + Math.random();
-  }
+function loadContent(id, callback) {
+  var path = "/storage?id=" + id + "&cache-poison=" + Math.random();
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.open("GET", path, true);
   xmlhttp.onreadystatechange = function() {
@@ -60,7 +50,7 @@ function saveContent(content, id, secret, callback) {
   xmlhttp.open("POST", path, true);
   xmlhttp.onreadystatechange = function() {
 	if (xmlhttp.readyState == 4) {
-      var meta = tidej.runtime.parseParams(xmlhttp.responseText);
+      var meta = parseParams(xmlhttp.responseText);
 	  var newId = meta['id'];
 	  var revision = meta['rev'];
 	  window.console.log("id", id, "ret-meta:", meta);

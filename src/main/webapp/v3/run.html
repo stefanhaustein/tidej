@@ -5,10 +5,11 @@
 <body>
 <tj-program id="program" style="display:none"></tj-program>
 <script src="js/io.js"></script>
-<script src="codemanagement.js"></script>
+<script src="js/codemanagement.js"></script>
 <script>
 
-var params = parseParams(window.location.hash);
+var params = parseParams(window.location.hash.substr(1));
+window.console.log("params:", params);
 loadContent(params['id'], runProgram);
 
 function runProgram(programXml) {
