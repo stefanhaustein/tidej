@@ -36,15 +36,20 @@ function loadContent(id, callback) {
 // Callback is called with the (potentially new) id and revision.
 function saveContent(content, id, secret, callback) {
   if (content == lastSaved) {
-	  console.log("content empty or unchanged!");
+	  if (callback != null) {
+	    callback(id, secret);
+	  }
 	  return;
   }
   this.lastSaved = content;
 
   var xmlhttp = new XMLHttpRequest();
   var path = "/storage";
-  if (id != null && secret != null) {
-    path += "?id=" + id + "&secret=" + secret;
+  if (id != null) {
+    path += "?id=" + id;
+    if (secret != null) {
+      path += "&secret=" + secret;
+    }
   }
   var self = this;
   xmlhttp.open("POST", path, true);
@@ -53,9 +58,10 @@ function saveContent(content, id, secret, callback) {
       var meta = parseParams(xmlhttp.responseText);
 	  var newId = meta['id'];
 	  var revision = meta['rev'];
+	  var secret = meta['secret'];
 	  window.console.log("id", id, "ret-meta:", meta);
       if (callback != null) {
-		    callback(newId, revision);
+		    callback(newId, secret);
 	    }
 	  }
   }

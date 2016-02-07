@@ -1,9 +1,10 @@
 var selectedOperation = null;
 var selectedClass = null;
-var menuVisible = false;
+var currentMenu = null;
 var currentProgramName = "Planets";
-var currentId = null;
-var currentSecret = null;
+
+var currentId;
+var currentSecret;
 
 var EMPTY_PROGRAM = 
  '<tj-section id="values" style="display:none">' + 
@@ -23,7 +24,6 @@ var EMPTY_PROGRAM =
  '</tj-section>';
  
 
-
 function save(callback) {
   var textAreas = document.body.querySelectorAll('textarea');
   for (var i = 0; i < textAreas.length; i++) {
@@ -31,16 +31,29 @@ function save(callback) {
   }
   
   var program = document.body.querySelector('tj-program').innerHTML;
-  localStorage.setItem("currentProgramName", currentProgramName);
-  localStorage.setItem("program-" + currentProgramName, program);
-  
+
   saveContent(program, currentId, currentSecret, function(newId, newSecret) {
     currentId = newId;
     currentSecret = newSecret;
+
+    location.hash = "#id=" + newId + ";secret=" + newSecret;
+
     callback();
   });
 }
-  
+
+function closeMenu() {
+  if (currentMenu) {
+    currentMenu.style.display = "none";
+    currentMenu = null;
+  }
+}
+
+function openMenu(id) {
+  closeMenu();
+  currentMenu = document.getElementById(id);
+  currentMenu.style.display = "block";
+}
 
 function handleJsaction(name, element, event) {
   switch(name) {
@@ -50,9 +63,28 @@ function handleJsaction(name, element, event) {
       break;
 
     case "showMenu":
-      document.getElementById("menu").style.display="";
-      menuVisible = true;
+      openMenu("main-menu");
       break;
+
+    case "share":
+      openMenu("share-menu");
+      break;
+
+    case "show-collaboration-url":
+      save(function() {
+        prompt("DANGER -- anybody with this URL can edit this program:", window.location.href);
+      });
+      break;
+
+    case "show-run-url":
+      save(function() {
+        var url = window.location.href;
+        var cut = url.lastIndexOf('/');
+        var runUrl = url.substr(0, cut + 1) + "run.html#id=" + currentId;
+        prompt("Share this URL:", runUrl);
+      });
+      break;
+
 
     case 'new-program':
       var newName = window.prompt("Program name");
@@ -143,12 +175,8 @@ document.body.oninput = function(event) {
   
 document.body.onclick = function(event) {
   var element = event.target;
-  var menuHidden = menuVisible;
-  
-  if (menuVisible) {
-    document.getElementById('menu').style.display = "none";
-    menuVisible = false;
-  }
+  var menuHidden = currentMenu != null;
+  closeMenu();
 
   while (element != null && 
       element.localName != 'tj-operation-signature' && 
@@ -167,3 +195,15 @@ document.body.onclick = function(event) {
   }
 };
     
+
+var params = parseParams(window.location.hash.substr(1));
+
+currentId = params['id'];
+currentSecret = params['secret'];
+
+if (currentId != null) {
+  loadContent(currentId, function(programXml) {
+    var programElement = document.getElementById("program");
+    programElement.innerHTML = programXml;
+  });
+}

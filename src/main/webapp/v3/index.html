@@ -18,12 +18,18 @@
   <div class="menu-title" style="float:right" jsaction="share"><i class="fa fa-share-alt"></i></div>
 </div>
   
-<div id="menu" style="width:200px;display:none;position:fixed;top:55px;left:0;border:1px solid grey;border-bottom:0">
-  <div class="menu-entry" jsaction="constants">Constants</div>
-  <div class="menu-entry" jsaction="globals">Globals Variables</div>
-  <div class="menu-entry" jsaction="add-function">Add Function</div>
-  <div class="menu-entry" jsaciton="add-class">Add Class</div>
-  <div class="menu-entry" jsaction="new-program">New Program</div>
+<div id="main-menu" class="menu" style="left:0">
+  <div jsaction="constants">Constants</div>
+  <div jsaction="globals">Global Variables</div>
+  <div jsaction="add-function">Add Function</div>
+  <div jsaction="add-class">Add Class</div>
+  <div jsaction="new-program">New Program</div>
+</div>
+
+<div id="share-menu" class="menu" style="right:0">
+  <div jsaction="show-collaboration-url">Show Collaboration URL</div>
+ <!-- <div jsaction="publish">Publish Current State</div> -->
+  <div jsaction="show-run-url">Show <!-- published --> run URL</div>
 </div>
   
 <tj-program id="program">

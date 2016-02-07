@@ -23,16 +23,33 @@ body {
 .menu-title {
   float: left;
   padding: 20px;
-  font-weight: bold;  
+  font-weight: bold;
 }
 
+.menu {
+  background-color: #fff;
+  border: 1px solid black;
+  display:none;
+  width:200px;
+  top:55px;
+  position:fixed;
+  border-bottom: 0;
+}
 
-.menu-entry {
+.popup {
+  .top:100px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 10px;
+}
+
+.menu > div {
     background-color:white;
     border-bottom:1px solid gray;
     padding:10px;
 }
-.menu-entry:hover {
+
+.menu > div:hover {
     background-color:gray;
     color:white;
 }
@@ -92,7 +109,6 @@ tj-operation.selected > tj-operation-body {
     border-top: 1px solid lightgray;
     padding: 8px 32px;
 }
-
 
 tj-class.selected {
     background-color: lightgray;
