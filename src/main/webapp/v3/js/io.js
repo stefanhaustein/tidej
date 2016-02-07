@@ -13,7 +13,7 @@ function parseParams(s) {
 	return result;
 }
 
-function load(id, rev, callback) {
+function loadContent(id, rev, callback) {
   var params = tidej.runtime.params();
   var id = params['id'];
   if (id == null) {
@@ -44,17 +44,14 @@ function load(id, rev, callback) {
 
 
 // Callback is called with the (potentially new) id and revision.
-function save(content, id, secret, callback) {
+function saveContent(content, id, secret, callback) {
   if (content == lastSaved) {
-	console.log("content empty or unchanged!");
-	if (callback != null) {
-		callback();
-	}
-	return;
+	  console.log("content empty or unchanged!");
+	  return;
   }
   this.lastSaved = content;
 
-  xmlhttp = new XMLHttpRequest();
+  var xmlhttp = new XMLHttpRequest();
   var path = "/storage";
   if (id != null && secret != null) {
     path += "?id=" + id + "&secret=" + secret;
@@ -68,9 +65,9 @@ function save(content, id, secret, callback) {
 	  var revision = meta['rev'];
 	  window.console.log("id", id, "ret-meta:", meta);
       if (callback != null) {
-		callback(newId, revision);
+		    callback(newId, revision);
+	    }
 	  }
-	}
   }
   xmlhttp.send(content);
 }
