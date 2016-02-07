@@ -2,6 +2,8 @@ var selectedOperation = null;
 var selectedClass = null;
 var menuVisible = false;
 var currentProgramName = "Planets";
+var currentId = null;
+var currentSecret = null;
 
 var EMPTY_PROGRAM = 
  '<tj-section id="values" style="display:none">' + 
@@ -22,7 +24,7 @@ var EMPTY_PROGRAM =
  
 
 
-function save() {
+function save(callback) {
   var textAreas = document.body.querySelectorAll('textarea');
   for (var i = 0; i < textAreas.length; i++) {
     textAreas[i].textContent = textAreas[i].value;
@@ -31,6 +33,12 @@ function save() {
   var program = document.body.querySelector('tj-program').innerHTML;
   localStorage.setItem("currentProgramName", currentProgramName);
   localStorage.setItem("program-" + currentProgramName, program);
+  
+  saveContent(program, currentId, currentSecret, function(newId, newSecret) {
+    currentId = newId;
+    currentSecret = newSecret;
+    callback();
+  });
 }
   
 
@@ -45,7 +53,6 @@ function handleJsaction(name, element, event) {
       document.getElementById("menu").style.display="";
       menuVisible = true;
       break;
-
 
     case 'new-program':
       var newName = window.prompt("Program name");
@@ -64,8 +71,10 @@ function handleJsaction(name, element, event) {
       break;
 
     case 'run':
-      save();
-      window.location = "run.html";
+      save(function() {
+         window.location = "run.html#id" + currentId;
+      });
+     
       break;
       
     case 'delete-program':
@@ -83,6 +92,7 @@ function autoresize(ta) {
   ta.scrollTop = ta.scrollHeight;
   window.scrollTo(window.scrollLeft,(ta.scrollTop + ta.scrollHeight));
 }
+  
   
 function select(element) {
   if (element.style.display == "none") {
@@ -123,12 +133,12 @@ function select(element) {
   }
 }
   
+  
 document.body.oninput = function(event) {
   if (event.target.localName == 'textarea') {
     autoresize(event.target);
   }
 };
-  
   
   
 document.body.onclick = function(event) {
