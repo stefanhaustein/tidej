@@ -72,7 +72,7 @@ function handleJsaction(name, element, event) {
 
     case 'run':
       save(function() {
-         window.location = "run.html#id" + currentId;
+         window.location = "run.html#id=" + currentId;
       });
      
       break;
