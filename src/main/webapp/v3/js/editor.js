@@ -57,6 +57,16 @@ function openMenu(id) {
 
 function handleJsaction(name, element, event) {
   switch(name) {
+    case 'load':
+      var id = element.getAttribute("data-id");
+      window.location.hash = "#id=" + id;
+      load();
+      break;
+
+    case 'examples':
+      openMenu("example-menu");
+      break;
+
     case 'constants':
     case 'globals':
       select(document.getElementById(name));
@@ -194,16 +204,21 @@ document.body.onclick = function(event) {
     select(element.parentNode);
   }
 };
-    
 
-var params = parseParams(window.location.hash.substr(1));
+function load() {
+  var params = parseParams(window.location.hash.substr(1));
 
-currentId = params['id'];
-currentSecret = params['secret'];
+  currentId = params['id'];
+  currentSecret = params['secret'];
 
-if (currentId != null) {
-  loadContent(currentId, function(programXml) {
-    var programElement = document.getElementById("program");
-    programElement.innerHTML = programXml;
-  });
+  if (currentId != null) {
+    loadContent(currentId, function(programXml) {
+      var programElement = document.getElementById("program");
+      programElement.innerHTML = programXml;
+    });
+  }
 }
+
+load();
+
+
