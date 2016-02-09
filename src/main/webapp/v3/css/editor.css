@@ -124,6 +124,10 @@ tj-class.selected > tj-class-body {
     display: block;
 }
 
+tj-program-name {
+  display: none;
+}
+
 textarea { 
     border: 0 none white;
     margin: 0;

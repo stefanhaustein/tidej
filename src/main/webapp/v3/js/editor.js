@@ -1,13 +1,19 @@
 var selectedOperation = null;
 var selectedClass = null;
 var currentMenu = null;
-var currentProgramName = "Planets";
+var currentProgramName = "";
 
 var currentId;
 var currentSecret;
 
+var programListText = localStorage.getItem('programList');
+var programList = programListText == null ? {} : JSON.parse(programListText);
+
+window.console.log("program list: ", programList);
+
 var EMPTY_PROGRAM = 
- '<tj-section id="values" style="display:none">' + 
+ '<tj-program-name>Unnamed</tj-program-name>' +
+ '<tj-section id="values" style="display:none">' +
  '<tj-section-name>Values</tj-section-name>' + 
  '<tj-section-body>' +
  '<tj-block id="constants" style="display:none"><tj-block-name>Constants</tj-block-name><tj-block-body><textarea></textarea></tj-block>' + 
@@ -38,7 +44,11 @@ function save(callback) {
 
     location.hash = "#id=" + newId + ";secret=" + newSecret;
 
-    callback();
+    programList[currentProgramName] = {id: newId, secret: newSecret};
+    localStorage.setItem('programList', JSON.stringify(programList));
+    if (callback != null) {
+      callback();
+    }
   });
 }
 
@@ -59,8 +69,24 @@ function handleJsaction(name, element, event) {
   switch(name) {
     case 'load':
       var id = element.getAttribute("data-id");
-      window.location.hash = "#id=" + id;
+      var secret = element.getAttribute("data-secret");
+      window.location.hash = "#id=" + id + (secret == null ? '' : (';secret=' + secret));
       load();
+      break;
+
+    case 'load-menu':
+      var menu = document.getElementById("load-menu");
+      menu.innerHTML = "";
+      for (var key in programList) {
+        var entry = programList[key];
+        var entryElement = document.createElement("div");
+        entryElement.setAttribute("jsaction", "load");
+        entryElement.setAttribute("data-id", entry['id']);
+        entryElement.setAttribute("data-secret", entry['secret']);
+        entryElement.textContent = key;
+        menu.appendChild(entryElement);
+      }
+      openMenu("load-menu");
       break;
 
     case 'examples':
@@ -82,7 +108,7 @@ function handleJsaction(name, element, event) {
 
     case "show-collaboration-url":
       save(function() {
-        prompt("DANGER -- anybody with this URL can edit this program:", window.location.href);
+        prompt("DANGER &mdash; anybody with this URL can edit this program:", window.location.href);
       });
       break;
 
@@ -95,20 +121,25 @@ function handleJsaction(name, element, event) {
       });
       break;
 
-
     case 'new-program':
       var newName = window.prompt("Program name");
       if (newName.trim() != "") {
-        currentProgramName = newName;
-        var xml = localStorage.getItem("program-" + currentProgramName);
-        if (xml == null) {
-          xml = EMPTY_PROGRAM;
-        }
+        currentId = null;
+        currentSecret = null;
         selectedOperation = null;
         selectedClass = null;
-        document.body.querySelector('tj-program').innerHTML = xml;
-        document.getElementById('title').textContent = newName;
-        document.title = newName;
+        var programElement = document.body.querySelector('tj-program');
+        programElement.innerHTML = EMPTY_PROGRAM;
+        setName(newName);
+      }
+      break;
+
+    case 'rename':
+      var newName = prompt("New Program Name?", currentProgramName);
+      if (newName != currentProgramName) {
+        delete programList[currentProgramName];
+        setName(newName);
+        save();
       }
       break;
 
@@ -116,14 +147,10 @@ function handleJsaction(name, element, event) {
       save(function() {
          window.location = "run.html#id=" + currentId;
       });
-     
       break;
-      
-    case 'delete-program':
-      selectedOperation = null;
-      selectedClass = null;
-      document.body.querySelector('tj-program').innerHTML = EMPTY_PROGRAM;
-      break;
+
+
+
   }  
 }
 
@@ -205,6 +232,19 @@ document.body.onclick = function(event) {
   }
 };
 
+function setName(name) {
+  currentProgramName = name;
+  document.title = name;
+  document.getElementById('title').textContent = name;
+  var programNameElement = document.body.querySelector("tj-program-name");
+  if (programNameElement == null) {
+    programElement = document.body.querySelector("tj-program");
+    programNameElement = document.createElement("tj-program-name");
+    programElement.insertBefore(programNameElement, programElement.firstChild);
+  }
+  programNameElement.textContent = name;
+}
+
 function load() {
   var params = parseParams(window.location.hash.substr(1));
 
@@ -215,6 +255,8 @@ function load() {
     loadContent(currentId, function(programXml) {
       var programElement = document.getElementById("program");
       programElement.innerHTML = programXml;
+      var programNameElement = programElement.querySelector("tj-program-name");
+      setName(programNameElement == null ? "" + currentId : programNameElement.textContent);
     });
   }
 }
