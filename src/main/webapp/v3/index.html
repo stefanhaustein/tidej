@@ -36,153 +36,15 @@
 </div>
 
 <div id="example-menu" class="menu" style="border-left: 20px solid grey; left:0">
-  <div jsaction="load" data-id="1rw6tezqnemuk">Hello World</div>
-  <div jsaction="load" data-id="2">Mole Clicker</div>
-  <div jsaction="load" data-id="13worn8uqxckf">Planet Simulation</div>
+  <div jsaction="load" data-id="11cd0zlkfh33e">Hello World</div>
+  <div jsaction="load" data-id="17pddy4qh22rc">Mole Clicker</div>
+  <div jsaction="load" data-id="1pgjxn6691lad">Planet Simulation</div>
 </div>
 
 <div id="load-menu" class="menu" style="border-left: 20px solid grey; left:0">
 </div>
 
-
 <tj-program id="program">
-<tj-section id="values">
-<tj-section-name>Values</tj-section-name>
-<tj-section-body>
-
-<tj-block id="constants">
-<tj-block-name>Constants</tj-block-name>
-<tj-block-body>
-<textarea>var G = 6.67428e-11;
-var TIMESCALE = 525600 * 6; // 6 x Minutes per year
-var SCALE = 1e-9;
-var OC = "https://openclipart.org/download/";</textarea>
-</tj-block-body>
-</tj-block>
-
-<tj-block id="globals">
-<tj-block-name>Global Variables</tj-block-name>
-<tj-block-body>
-<textarea>var bodies = [];</textarea>
-</tj-block-body>
-</tj-block>
-
-</tj-section-body>
-</tj-section>
-
-<tj-section id="functions">
-<tj-section-name>Functions</tj-section-name>
-
-<tj-operation>
-<tj-operation-signature>update()</tj-operation-signature>
-<tj-operation-body>
-<textarea>for (var i = 0; i < bodies.length; i++) {
-  var bodyI = bodies[i];
-  for (var j = 0; j < bodies.length; j++) {
-    if (i != j) {
-      bodyI.addAttraction(bodies[j]);
-    }
-  }
-  bodyI.update(TIMESCALE / 60);
-}
-window.requestAnimationFrame(update);</textarea>
-</tj-operation-body>
-</tj-operation>
-
-</tj-section>
-
-<tj-section id="classes">
-<tj-section-name>Classes</tj-section-name>
-
-<tj-class>
-<tj-class-name>Body</tj-class-name>
-<tj-class-body>
-<tj-operation>
-<tj-operation-signature>constructor(mass, distance, speed, size, color)</tj-operation-signature>
-<tj-operation-body>
-<textarea>this.mass = mass;
-this.x = 0;
-this.y = -distance;
-this.vx = speed;
-this.vy = 0;
-this.fx = 0;
-this.fy = 0;
-this.size = size;
-this.img = document.createElement("div");
-this.img.style.width = size + "px";
-this.img.style.height = size + "px";
-this.img.style.borderRadius = size/2 + "px";
-this.img.style.backgroundColor = color;
-this.img.style.position = "absolute";
-document.body.appendChild(this.img);</textarea>
-</tj-body>
-</tj-operation>
-  
-<tj-operation>
-<tj-operation-signature>addAttraction(other)</tj-operation-signature>
-<tj-operation-body>
-<textarea>var dx = other.x - this.x;
-var dy = other.y - this.y;
-var r2 = dx * dx + dy * dy;  
-var f = G * this.mass * other.mass / r2; // * this.mass / d;
-var th = Math.atan2(dy, dx);
-this.fx += f * Math.cos(th);
-this.fy += f * Math.sin(th);</textarea>
-</tj-operation-body>
-</tj-operation>
-
-<tj-operation>
-<tj-operation-signature>update(dt)</tj-operation-signature>
-<tj-operation-body>
-<textarea>this.vx += dt * this.fx / this.mass;
-this.vy += dt * this.fy / this.mass;
-this.x += this.vx * dt;
-this.y += this.vy * dt;
-this.img.style.left = 
-  (window.innerWidth - this.size) / 2 + 
-    this.x * SCALE + "px";
-this.img.style.top = 
-  (window.innerHeight - this.size) / 2 + 
-    this.y * SCALE + "px";
-this.fx = 0;
-this.fy = 0;</textarea>
-</tj-operation-body>
-</tj-operation>
-</tj-body>
-
-</tj-class>
-
-</tj-section>
-<tj-section>
-<tj-section-name>Main</tj-section-name>
-
-<tj-block id="main">
-<tj-block-name>Program Body</tj-block-name>
-<tj-block-body>
-<textarea>bodies.push(new Body(
-  1.99e30, 0, 0, 24, "#ffa"));
-
-bodies.push(new Body(
-  3.3e23, 58e9, 47.36e3, 6, "#888"));
-
-bodies.push(new Body(
-  4.87e24, 108e9, 35e3, 12, "#dcc"));
-
-bodies.push(new Body(
-  5.97e24, 150e9, 29.8e3, 12, "#66e"));
-
-bodies.push(new Body(
-  6.42e23, 228e9, 24.1e3, 8, "#fa5"));
-
-document.body.style.backgroundColor = "black";
-
-update();
-
-</textarea>
-</tj-block-body>
-</tj-block>
-
-</tj-section>
 </tj-program>
 </div>
 <script src="js/io.js"></script>

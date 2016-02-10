@@ -71,7 +71,7 @@ function handleJsaction(name, element, event) {
       var id = element.getAttribute("data-id");
       var secret = element.getAttribute("data-secret");
       window.location.hash = "#id=" + id + (secret == null ? '' : (';secret=' + secret));
-      load();
+//      load();
       break;
 
     case 'load-menu':
@@ -122,21 +122,12 @@ function handleJsaction(name, element, event) {
       break;
 
     case 'new-program':
-      var newName = window.prompt("Program name");
-      if (newName.trim() != "") {
-        currentId = null;
-        currentSecret = null;
-        selectedOperation = null;
-        selectedClass = null;
-        var programElement = document.body.querySelector('tj-program');
-        programElement.innerHTML = EMPTY_PROGRAM;
-        setName(newName);
-      }
+      window.location.hash = "#";
       break;
 
     case 'rename':
       var newName = prompt("New Program Name?", currentProgramName);
-      if (newName != currentProgramName) {
+      if (newName && newName != currentProgramName) {
         delete programList[currentProgramName];
         setName(newName);
         save();
@@ -148,9 +139,6 @@ function handleJsaction(name, element, event) {
          window.location = "run.html#id=" + currentId;
       });
       break;
-
-
-
   }  
 }
 
@@ -251,9 +239,20 @@ function load() {
   currentId = params['id'];
   currentSecret = params['secret'];
 
-  if (currentId != null) {
+  var programElement = document.getElementById("program");
+
+  if (currentId == null) {
+    programElement.innerHTML = EMPTY_PROGRAM;
+    var newName = "Unnamed";
+    var index = 2;
+    while (programList[newName]) {
+      newName = "Unnamed " + index++;
+    }
+    selectedOperation = null;
+    selectedClass = null;
+    setName(newName);
+  } else {
     loadContent(currentId, function(programXml) {
-      var programElement = document.getElementById("program");
       programElement.innerHTML = programXml;
       var programNameElement = programElement.querySelector("tj-program-name");
       setName(programNameElement == null ? "" + currentId : programNameElement.textContent);
@@ -261,6 +260,7 @@ function load() {
   }
 }
 
+window.onhashchange = load;
 load();
 
 
