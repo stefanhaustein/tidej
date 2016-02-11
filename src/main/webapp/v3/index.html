@@ -13,17 +13,13 @@
 <body>
 <div id="editor">
 <div id="topbar" style="position:fixed;background-color:lightgreen;top:0;left:0;width:100%">
-  <div class="menu-title" jsaction="showMenu"><i class="fa fa-bars"></i>&nbsp;&nbsp;<span id="title">Planets</span></div>
+  <div class="menu-title" jsaction="menu" data-id="main-menu"><i class="fa fa-bars"></i>&nbsp;&nbsp;<span id="title">Planets</span></div>
   <div class="menu-title" style="float:right" jsaction="run"><i class="fa fa-play"></i></div>
-  <div class="menu-title" style="float:right" jsaction="share"><i class="fa fa-share-alt"></i></div>
+  <div class="menu-title" style="float:right" jsaction="menu" data-id="share-menu"><i class="fa fa-share-alt"></i></div>
 </div>
   
 <div id="main-menu" class="menu" style="left:0">
-  <div jsaction="constants">Constants</div>
-  <div jsaction="globals">Global Variables</div>
-  <div jsaction="add-function">Add Function</div>
-  <div jsaction="add-class">Add Class</div>
-  <div jsaction="examples">Examples</div>
+  <div jsaction="menu" data-id="add-menu">Add</div>
   <div jsaction="load-menu">Load</div>
   <div jsaction="rename">Rename</div>
   <div jsaction="new-program">New Program</div>
@@ -39,6 +35,13 @@
   <div jsaction="load" data-id="11cd0zlkfh33e">Hello World</div>
   <div jsaction="load" data-id="17pddy4qh22rc">Mole Clicker</div>
   <div jsaction="load" data-id="1pgjxn6691lad">Planet Simulation</div>
+</div>
+
+<div id="add-menu" class="menu" style="border-left: 20px solid grey; left:0">
+  <div jsaction="constants">Constants</div>
+  <div jsaction="globals">Global Variables</div>
+  <div jsaction="add-function">Function</div>
+  <div jsaction="add-class">Class</div>
 </div>
 
 <div id="load-menu" class="menu" style="border-left: 20px solid grey; left:0">

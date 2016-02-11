@@ -1,5 +1,6 @@
 var selectedOperation = null;
 var selectedClass = null;
+var selectedElement = null;
 var currentMenu = null;
 var currentProgramName = "";
 
@@ -8,6 +9,7 @@ var currentSecret;
 
 var programListText = localStorage.getItem('programList');
 var programList = programListText == null ? {} : JSON.parse(programListText);
+var savedContent = null;
 
 window.console.log("program list: ", programList);
 
@@ -35,21 +37,29 @@ function save(callback) {
   for (var i = 0; i < textAreas.length; i++) {
     textAreas[i].textContent = textAreas[i].value;
   }
-  
+
+  var selected = selectedElement;
+  select(null);
   var program = document.body.querySelector('tj-program').innerHTML;
+  select(selectedElement);
 
-  saveContent(program, currentId, currentSecret, function(newId, newSecret) {
-    currentId = newId;
-    currentSecret = newSecret;
+  if (program == savedContent) {
+    callback();
+  } else {
+    saveContent(program, currentId, currentSecret, function(newId, newSecret) {
+      savedContent = program;
+      currentId = newId;
+      currentSecret = newSecret;
 
-    location.hash = "#id=" + newId + ";secret=" + newSecret;
+      location.hash = "#id=" + newId + ";secret=" + newSecret;
 
-    programList[currentProgramName] = {id: newId, secret: newSecret};
-    localStorage.setItem('programList', JSON.stringify(programList));
-    if (callback != null) {
-      callback();
-    }
-  });
+      programList[currentProgramName] = {id: newId, secret: newSecret};
+      localStorage.setItem('programList', JSON.stringify(programList));
+      if (callback != null) {
+        callback();
+      }
+    });
+  }
 }
 
 function closeMenu() {
@@ -76,7 +86,7 @@ function handleJsaction(name, element, event) {
 
     case 'load-menu':
       var menu = document.getElementById("load-menu");
-      menu.innerHTML = "";
+      menu.innerHTML = "<div jsaction='menu' data-id='example-menu'>Examples</div>";
       for (var key in programList) {
         var entry = programList[key];
         var entryElement = document.createElement("div");
@@ -89,8 +99,8 @@ function handleJsaction(name, element, event) {
       openMenu("load-menu");
       break;
 
-    case 'examples':
-      openMenu("example-menu");
+    case 'menu':
+      openMenu(element.getAttribute("data-id"));
       break;
 
     case 'constants':
@@ -98,17 +108,9 @@ function handleJsaction(name, element, event) {
       select(document.getElementById(name));
       break;
 
-    case "showMenu":
-      openMenu("main-menu");
-      break;
-
-    case "share":
-      openMenu("share-menu");
-      break;
-
     case "show-collaboration-url":
       save(function() {
-        prompt("DANGER &mdash; anybody with this URL can edit this program:", window.location.href);
+        prompt("DANGER -- anybody with this URL can edit this program:", window.location.href);
       });
       break;
 
@@ -152,6 +154,18 @@ function autoresize(ta) {
   
   
 function select(element) {
+  if (element == null) {
+    if (selectedOperation != null) {
+      selectedOperation.removeAttribute('class');
+      selectedOperation = null;
+    }
+    if (selectedClass != null) {
+      selectedOperation.removeAttribute('class');
+      selectedOperation = null;
+    }
+    selectedElement = null;
+    return;
+  }
   if (element.style.display == "none") {
     element.style.display = "";
   }
@@ -159,18 +173,21 @@ function select(element) {
   if (section && section.style.display == "none") {
     section.style.display = "";
   }
-  
+
   if (selectedOperation != null && selectedOperation != element) {
     selectedOperation.className = '';
     selectedOperation = null;
   }
+
   if (element == selectedOperation) {
     // Toggle selected OP
-    selectedOperation.className = '';
+    selectedOperation.removeAttribute('class');
     selectedOperation = null;
+    selectedElement = selectedClass;
   } else if (element == selectedClass) {
-    selectedClass.className = '';
+    selectedClass.removeAttribute('class');
     selectedClass = null;
+    selectedElement = null;
   } else {
     element.className = 'selected';
     if (element.localName == 'tj-class') {
@@ -178,7 +195,7 @@ function select(element) {
     } else {
       selectedOperation = element;
       if (selectedClass != null && selectedClass != element.parentNode.parentNode) {
-        selectedClass.className = '';
+        selectedClass.removeAttribute('class');
         selectedClass = null;
       }
       var ta = selectedOperation.querySelectorAll('textarea');
@@ -187,6 +204,7 @@ function select(element) {
         autoresize(ta[i]);
       }
     }
+    selectedElement = element;
   }
 }
   
@@ -198,7 +216,7 @@ document.body.oninput = function(event) {
 };
   
   
-document.body.onclick = function(event) {
+document.onclick = function(event) {
   var element = event.target;
   var menuHidden = currentMenu != null;
   closeMenu();
@@ -222,7 +240,7 @@ document.body.onclick = function(event) {
 
 function setName(name) {
   currentProgramName = name;
-  document.title = name;
+  document.title = "TideJ" + name.startsWith("Unnamed") ? "" : (": " + name);
   document.getElementById('title').textContent = name;
   var programNameElement = document.body.querySelector("tj-program-name");
   if (programNameElement == null) {
@@ -241,6 +259,9 @@ function load() {
 
   var programElement = document.getElementById("program");
 
+  selectedOperation = null;
+  selectedClass = null;
+
   if (currentId == null) {
     programElement.innerHTML = EMPTY_PROGRAM;
     var newName = "Unnamed";
@@ -248,12 +269,12 @@ function load() {
     while (programList[newName]) {
       newName = "Unnamed " + index++;
     }
-    selectedOperation = null;
-    selectedClass = null;
+    savedContent = programElement.innerHTML;
     setName(newName);
   } else {
     loadContent(currentId, function(programXml) {
       programElement.innerHTML = programXml;
+      savedContent = programElement.innerHTML;
       var programNameElement = programElement.querySelector("tj-program-name");
       setName(programNameElement == null ? "" + currentId : programNameElement.textContent);
     });

@@ -62,7 +62,7 @@ public class StorageServlet extends HttpServlet {
 		Entity entity = i.next();
 		Text content = (Text) entity.getProperty("content");
 		PrintWriter writer = resp.getWriter();
-		writer.print("rev=" + entity.getProperty("rev") + "\n");
+		writer.print("rev=" + entity.getProperty("rev") + ";");
 		writer.print("tag=" + entity.getProperty("tag") + "\n");
 		writer.println(content.getValue());
 	}

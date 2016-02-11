@@ -1,4 +1,3 @@
-var lastSaved;
 
 function parseParams(s) {
     var parts = s.split(';');
@@ -35,18 +34,10 @@ function loadContent(id, callback) {
 
 // Callback is called with the (potentially new) id and revision.
 function saveContent(content, id, secret, callback) {
-  if (content == lastSaved) {
-	  if (callback != null) {
-	    callback(id, secret);
-	  }
-	  return;
-  }
-  this.lastSaved = content;
-
   var xmlhttp = new XMLHttpRequest();
-  var path = "/storage";
+  var path = "/storage?tag=dev";
   if (id != null) {
-    path += "?id=" + id;
+    path += "&id=" + id;
     if (secret != null) {
       path += "&secret=" + secret;
     }
