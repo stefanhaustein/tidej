@@ -48,7 +48,7 @@ io.saveContent = function(content, params, callback) {
   xmlhttp.onreadystatechange = function() {
 	if (xmlhttp.readyState == 4) {
       if (callback != null) {
-        var meta = parseParams(xmlhttp.responseText);
+        var meta = io.parseParams(xmlhttp.responseText);
 		callback(meta);
 	  }
 	}

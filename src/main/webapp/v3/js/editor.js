@@ -46,7 +46,7 @@ function save(callback) {
   if (program == savedContent) {
     callback();
   } else {
-    modal.show("Saving...");
+    modal.showDeferred("Saving...");
     io.saveContent(program, {id: currentId, secret: currentSecret}, function(params) {
 
       modal.hide();
@@ -54,9 +54,9 @@ function save(callback) {
       currentId = params['id'];
       currentSecret = params['secret'];
 
-      location.hash = "#id=" + newId + ";secret=" + newSecret;
+      location.hash = "#id=" + currentId + ";secret=" + currentSecret;
 
-      programList[currentProgramName] = {id: newId, secret: newSecret};
+      programList[currentProgramName] = {id: currentId, secret: currentSecret};
       localStorage.setItem('programList', JSON.stringify(programList));
       if (callback != null) {
         callback();
@@ -338,7 +338,7 @@ function load() {
     savedContent = programElement.innerHTML;
     setName(newName);
   } else {
-    modal.show("Loading...");
+    modal.showDeferred("Loading...");
     io.loadContent({id: currentId}, function(programXml) {
       modal.hide();
       programElement.innerHTML = programXml;

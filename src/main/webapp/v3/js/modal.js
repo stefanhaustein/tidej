@@ -21,13 +21,25 @@ modal.dialog.style.margin = "50px auto";
 
 modal.background.appendChild(modal.dialog);
 
+modal.showDeferredTimeout = null;
+
+modal.showDeferred = function(label) {
+  modal.showDeferredTimeout = window.setTimeout(function() {modal.show(label);}, 500);
+}
+
 modal.show = function(label) {
+  modal.showDeferredTimeout = null;
   modal.dialog.innerHTML = label;
   document.body.appendChild(modal.background);
 }
 
 modal.hide = function() {
-  document.body.removeChild(modal.background);
+  if (modal.showDeferredTimeout) {
+    window.clearTimeout(modal.showDeferredTimeout);
+    modal.showDeferredTimeout = null;
+  } else {
+    document.body.removeChild(modal.background);
+  }
 }
 
 modal.prompt = function(label, value, callback) {
