@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Tidej</title>
+  <title>TideJ</title>
   <script type="text/javascript" src="js/codemanagement.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="mobile-web-app-capable" content="yes">
@@ -11,9 +11,12 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 </head>
 <body>
+<div id="modal" style="position:fixed;background-color:rgba(0,0,0,0.3);top:0;bottom:0;left:0;right:0;z-index:100;display:none">
+
+</div>
 <div id="editor">
 <div id="topbar" style="position:fixed;background-color:lightgreen;top:0;left:0;width:100%">
-  <div class="menu-title" jsaction="menu" data-id="main-menu"><i class="fa fa-bars"></i>&nbsp;&nbsp;<span id="title">Planets</span></div>
+  <div class="menu-title" jsaction="menu" data-id="main-menu"><i class="fa fa-bars"></i>&nbsp;&nbsp;<span id="title">TideJ</span></div>
   <div class="menu-title" style="float:right" jsaction="run"><i class="fa fa-play"></i></div>
   <div class="menu-title" style="float:right" jsaction="menu" data-id="share-menu"><i class="fa fa-share-alt"></i></div>
 </div>
@@ -51,6 +54,7 @@
 </tj-program>
 </div>
 <script src="js/io.js"></script>
+<script src="js/modal.js"></script>
 <script src="js/editor.js"></script>
 </body>
 </html>

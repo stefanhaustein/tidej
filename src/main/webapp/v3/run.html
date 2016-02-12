@@ -1,6 +1,7 @@
 <html>
 <head>
-     <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" sizes="192x192" href="img/tidej.png">
 </head>    
 <body>
 <tj-program id="program" style="display:none"></tj-program>
@@ -8,9 +9,9 @@
 <script src="js/codemanagement.js"></script>
 <script>
 
-var params = parseParams(window.location.hash.substr(1));
+var params = io.parseParams(window.location.hash.substr(1));
 window.console.log("params:", params);
-loadContent(params['id'], runProgram);
+io.loadContent({id: params['id']}, runProgram);
 
 function runProgram(programXml) {
   var programElement = document.getElementById("program");

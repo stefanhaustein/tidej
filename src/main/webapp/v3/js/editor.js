@@ -46,10 +46,13 @@ function save(callback) {
   if (program == savedContent) {
     callback();
   } else {
-    saveContent(program, currentId, currentSecret, function(newId, newSecret) {
+    modal.show("Saving...");
+    io.saveContent(program, {id: currentId, secret: currentSecret}, function(params) {
+
+      modal.hide();
       savedContent = program;
-      currentId = newId;
-      currentSecret = newSecret;
+      currentId = params['id'];
+      currentSecret = params['secret'];
 
       location.hash = "#id=" + newId + ";secret=" + newSecret;
 
@@ -75,8 +78,63 @@ function openMenu(id) {
   currentMenu.style.display = "block";
 }
 
+function addClass(name) {
+  if (!name) {
+    return;
+  }
+
+  var classesBlock = document.getElementById("classes").querySelector("tj-section-body");
+  var classElement = classesBlock.firstElementChild;
+  while (classElement != null) {
+    var className = classElement.querySelector("tj-class-name").textContent;
+    if (className > name) {
+      break;
+    }
+    classElement = classElement.nextElementSibling;
+  }
+  var newElement = document.createElement("tj-class");
+  newElement.innerHTML = "<tj-class-name></tj-class-name><tj-class-body><tj-operation>" +
+      "<tj-operation-signature>constructor()</tj-operation-signature>" +
+      "<tj-operation-body><textarea></textarea></tj-operation-body>"+
+      "</tj-operation></tj-class-body>";
+  classesBlock.insertBefore(newElement, classElement);
+  newElement.querySelector("tj-class-name").textContent = name;
+  select(newElement);
+}
+
+function addFunction(name) {
+  if (!name) {
+    return;
+  }
+  if (name.indexOf('(') == -1) {
+    name += "()";
+  }
+  var functionsBlock = document.getElementById("functions").querySelector("tj-section-body");
+  var opElement = functionsBlock.firstElementChild;
+  while (opElement != null) {
+    var opName = opElement.querySelector("tj-operation-signature").textContent;
+    if (opName > name) {
+      break;
+    }
+    opElement = opElement.nextElementSibling;
+  }
+  var newElement = document.createElement("tj-operation");
+  newElement.innerHTML = "<tj-operation-signature></tj-operation-signature><tj-operation-body><textarea></textarea></tj-operation-body>";
+  functionsBlock.insertBefore(newElement, opElement);
+  newElement.querySelector("tj-operation-signature").textContent = name;
+  select(newElement);
+}
+
 function handleJsaction(name, element, event) {
   switch(name) {
+    case 'add-class':
+      modal.prompt("Class name?", "", addClass);
+      break;
+
+    case 'add-function':
+      modal.prompt("Function name or signature?", "", addFunction);
+      break;
+
     case 'load':
       var id = element.getAttribute("data-id");
       var secret = element.getAttribute("data-secret");
@@ -110,7 +168,7 @@ function handleJsaction(name, element, event) {
 
     case "show-collaboration-url":
       save(function() {
-        prompt("DANGER -- anybody with this URL can edit this program:", window.location.href);
+        modal.prompt("<b>DANGER</b> &mdash; anybody with this URL can edit this program:", window.location.href);
       });
       break;
 
@@ -119,21 +177,23 @@ function handleJsaction(name, element, event) {
         var url = window.location.href;
         var cut = url.lastIndexOf('/');
         var runUrl = url.substr(0, cut + 1) + "run.html#id=" + currentId;
-        prompt("Share this URL:", runUrl);
+        modal.prompt("Share this URL:", runUrl);
       });
       break;
 
     case 'new-program':
+      localStorage.setItem("lastHash", "");
       window.location.hash = "#";
       break;
 
     case 'rename':
-      var newName = prompt("New Program Name?", currentProgramName);
-      if (newName && newName != currentProgramName) {
-        delete programList[currentProgramName];
-        setName(newName);
-        save();
-      }
+      modal.prompt("New Program Name?", currentProgramName, function(newName) {
+        if (newName && newName != currentProgramName) {
+          delete programList[currentProgramName];
+          setName(newName);
+          save();
+        }
+      });
       break;
 
     case 'run':
@@ -252,7 +312,13 @@ function setName(name) {
 }
 
 function load() {
-  var params = parseParams(window.location.hash.substr(1));
+  var hash = window.location.hash;
+  if (hash.length <= 1 && localStorage.getItem("lastHash")) {
+    hash = localStorage.getItem("lastHash");
+  } else {
+    localStorage.setItem("lastHash", hash);
+  }
+  var params = io.parseParams(hash.substr(1));
 
   currentId = params['id'];
   currentSecret = params['secret'];
@@ -272,7 +338,9 @@ function load() {
     savedContent = programElement.innerHTML;
     setName(newName);
   } else {
-    loadContent(currentId, function(programXml) {
+    modal.show("Loading...");
+    io.loadContent({id: currentId}, function(programXml) {
+      modal.hide();
       programElement.innerHTML = programXml;
       savedContent = programElement.innerHTML;
       var programNameElement = programElement.querySelector("tj-program-name");
