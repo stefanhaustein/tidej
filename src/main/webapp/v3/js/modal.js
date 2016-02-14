@@ -78,7 +78,7 @@ modal.prompt = function(label, value, callback) {
   };
 }
 
-modal.showMenu = function(anchor, options, callback) {
+modal.showMenu = function(anchor, cssClass, options, callback) {
   var pos = modal.getPosition(anchor);
   modal.background.style.backgroundColor = "rgba(0,0,0,0)";
   modal.menu.style.display = "block";
@@ -86,22 +86,22 @@ modal.showMenu = function(anchor, options, callback) {
   modal.menu.style.top = (pos.y + anchor.clientHeight) + "px";
   modal.menu.style.right = pos.x + "px";
   modal.menu.style.position = "fixed";
-  modal.menu.style.border = "1px solid lightgray";
-  modal.menu.style.cursor = "pointer";
-  modal.menu.style.borderBottom = "0";
+  modal.menu.className = cssClass;
 
   modal.menu.innerHTML = "";
   for (var i = 0; i < options.length; i++) {
     var entry = document.createElement("div");
-    entry.style.padding = "5px";
-    entry.style.borderBottom = "1px solid lightgray";
     entry.textContent = options[i];
     modal.menu.appendChild(entry);
   }
   document.body.appendChild(modal.background);
 
   modal.background.onclick = function(event) {
+    modal.menu.style.display = "none";
     document.body.removeChild(modal.background);
+    if (event.target.parentNode == modal.menu) {
+      callback(event.target.textContent);
+    }
   };
 
 }

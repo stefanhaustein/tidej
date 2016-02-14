@@ -48,20 +48,13 @@ function addClass(name) {
 
   var classesBlock = document.getElementById("classes").querySelector("tj-section-body");
   var classElement = classesBlock.firstElementChild;
-  while (classElement != null) {
-    var className = classElement.querySelector("tj-class-name").textContent;
-    if (className > name) {
-      break;
-    }
-    classElement = classElement.nextElementSibling;
-  }
   var newElement = document.createElement("tj-class");
   newElement.innerHTML = "<tj-class-name></tj-class-name><tj-class-body><tj-operation>" +
       "<tj-operation-signature>constructor()</tj-operation-signature>" +
       "<tj-operation-body><textarea></textarea></tj-operation-body>"+
       "</tj-operation></tj-class-body>";
-  classesBlock.insertBefore(newElement, classElement);
   newElement.querySelector("tj-class-name").textContent = name;
+  insertArtifact(classesBlock, newElement);
   select(newElement);
 }
 
@@ -72,20 +65,12 @@ function addFunction(name) {
   if (name.indexOf('(') == -1) {
     name += "()";
   }
-  var functionsBlock = document.getElementById("functions").querySelector("tj-section-body");
-  var opElement = functionsBlock.firstElementChild;
-  while (opElement != null) {
-    var opName = opElement.querySelector("tj-operation-signature").textContent;
-    if (opName > name) {
-      break;
-    }
-    opElement = opElement.nextElementSibling;
-  }
   var newElement = document.createElement("tj-operation");
-  newElement.innerHTML = "<tj-operation-head><tj-operation-signature></tj-operation-signature><tj-operation-menu></tj-operation-menu></tj-operation-head>" +
+  newElement.innerHTML = "<tj-operation-signature></tj-operation-signature>" +
     "<tj-operation-body><textarea></textarea></tj-operation-body>";
-  functionsBlock.insertBefore(newElement, opElement);
   newElement.querySelector("tj-operation-signature").textContent = name;
+  var functionsBlock = document.getElementById("functions").querySelector("tj-section-body");
+  insertArtifact(functionsBlock, newElement);
   select(newElement);
 }
 
@@ -215,10 +200,47 @@ function load() {
    }
 }
 
+function insertArtifact(container, artifact) {
+  var name = artifact.firstElementChild.textContent;
+  var child = container.firstChild;
+  while (child != null) {
+    var childName = child.firstElementChild.textContent;
+    if (childName > name) {
+      break;
+    }
+    child = child.nextElementSibling;
+  }
+  container.insertBefore(artifact, child);
+}
 
 function openContextMenu(element) {
-  modal.showMenu(element, ["Rename", "Delete"], function(result) {
-    window.console.log(result);
+  var elementName = element.localName;
+
+  var options;
+  if (elementName == "tj-operation-signature") {
+    options = ["Change Signature", "Delete"];
+  } else if (elementName == "tj-class-name") {
+    options = ["Rename", "Delete"];
+  } else if (elementName == "tj-block") {
+    options = ["Delete"];
+    return;
+  }
+
+  modal.showMenu(element, "menu", options, function(result) {
+    if (result == "Rename" || result == "Change Signature") {
+      var name = element.textContent;
+      modal.prompt(result == "Rename" ? "New name: " : "New signature:", name, function(newName) {
+        if (newName != name) {
+          element.textContent = newName;
+          var artifact = element.parentNode;
+          var container = artifact.parentNode;
+          container.removeChild(artifact);
+          insertArtifact(container, artifact);
+        }
+      });
+    } else {
+      window.console.log("menu selection: ", result);
+    }
   });
 }
 

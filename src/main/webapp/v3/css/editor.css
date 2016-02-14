@@ -83,7 +83,7 @@ tj-class-signature {
   padding: 8px 16px;
 }
 
-tj-block-name:after,
+#values tj-block-name:after,
 tj-class-name:after,
 tj-operation-signature:after,
 tj-class-signature:after {
@@ -91,6 +91,7 @@ tj-class-signature:after {
   float: right;
   display: block;
 }
+
 
 tj-block-body,
 tj-class-body,
