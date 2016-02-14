@@ -24,6 +24,7 @@ body {
   float: left;
   padding: 20px;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .menu {
@@ -41,6 +42,7 @@ body {
     background-color: white;
     border-bottom:1px solid lightgray;
     padding:10px;
+    cursor: pointer;
 }
 
 .menu > div:hover {
@@ -73,11 +75,21 @@ tj-block-name,
 tj-class-name,
 tj-operation-signature,
 tj-class-signature {
+  cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   display: block;
   padding: 8px 16px;
+}
+
+tj-block-name:after,
+tj-class-name:after,
+tj-operation-signature:after,
+tj-class-signature:after {
+  content: "\022ee";
+  float: right;
+  display: block;
 }
 
 tj-block-body,

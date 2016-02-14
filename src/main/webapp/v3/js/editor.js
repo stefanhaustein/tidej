@@ -32,51 +32,14 @@ var EMPTY_PROGRAM =
  '</tj-section>';
  
 
-function save(callback) {
-  var textAreas = document.body.querySelectorAll('textarea');
-  for (var i = 0; i < textAreas.length; i++) {
-    textAreas[i].textContent = textAreas[i].value;
-  }
 
-  var selected = selectedElement;
-  select(null);
-  var program = document.body.querySelector('tj-program').innerHTML;
-  select(selectedElement);
-
-  if (program == savedContent) {
-    callback();
-  } else {
-    modal.showDeferred("Saving...");
-    io.saveContent(program, {id: currentId, secret: currentSecret}, function(params) {
-
-      modal.hide();
-      savedContent = program;
-      currentId = params['id'];
-      currentSecret = params['secret'];
-
-      location.hash = "#id=" + currentId + ";secret=" + currentSecret;
-
-      programList[currentProgramName] = {id: currentId, secret: currentSecret};
-      localStorage.setItem('programList', JSON.stringify(programList));
-      if (callback != null) {
-        callback();
-      }
-    });
-  }
+function autoresize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight+'px';
+  ta.scrollTop = ta.scrollHeight;
+  window.scrollTo(window.scrollLeft,(ta.scrollTop + ta.scrollHeight));
 }
 
-function closeMenu() {
-  if (currentMenu) {
-    currentMenu.style.display = "none";
-    currentMenu = null;
-  }
-}
-
-function openMenu(id) {
-  closeMenu();
-  currentMenu = document.getElementById(id);
-  currentMenu.style.display = "block";
-}
 
 function addClass(name) {
   if (!name) {
@@ -119,11 +82,21 @@ function addFunction(name) {
     opElement = opElement.nextElementSibling;
   }
   var newElement = document.createElement("tj-operation");
-  newElement.innerHTML = "<tj-operation-signature></tj-operation-signature><tj-operation-body><textarea></textarea></tj-operation-body>";
+  newElement.innerHTML = "<tj-operation-head><tj-operation-signature></tj-operation-signature><tj-operation-menu></tj-operation-menu></tj-operation-head>" +
+    "<tj-operation-body><textarea></textarea></tj-operation-body>";
   functionsBlock.insertBefore(newElement, opElement);
   newElement.querySelector("tj-operation-signature").textContent = name;
   select(newElement);
 }
+
+
+function closeMenu() {
+  if (currentMenu) {
+    currentMenu.style.display = "none";
+    currentMenu = null;
+  }
+}
+
 
 function handleJsaction(name, element, event) {
   switch(name) {
@@ -198,21 +171,98 @@ function handleJsaction(name, element, event) {
 
     case 'run':
       save(function() {
-         window.location = "run.html#id=" + currentId;
+         window.location = "run.html#id=" + currentId + (currentSecret == null ? "" : (";secret=" + currentSecret));
       });
       break;
   }  
 }
 
-  
-function autoresize(ta) {
-  ta.style.height = 'auto';
-  ta.style.height = ta.scrollHeight+'px';
-  ta.scrollTop = ta.scrollHeight;
-  window.scrollTo(window.scrollLeft,(ta.scrollTop + ta.scrollHeight));
+function load() {
+   var hash = window.location.hash;
+   if (hash.length <= 1 && localStorage.getItem("lastHash")) {
+     hash = localStorage.getItem("lastHash");
+   } else {
+     localStorage.setItem("lastHash", hash);
+   }
+   var params = io.parseParams(hash.substr(1));
+
+   currentId = params['id'];
+   currentSecret = params['secret'];
+
+   var programElement = document.getElementById("program");
+
+   selectedOperation = null;
+   selectedClass = null;
+
+   if (currentId == null) {
+     programElement.innerHTML = EMPTY_PROGRAM;
+     var newName = "Unnamed";
+     var index = 2;
+     while (programList[newName]) {
+       newName = "Unnamed " + index++;
+     }
+     savedContent = programElement.innerHTML;
+     setName(newName);
+   } else {
+     modal.showDeferred("Loading...");
+     io.loadContent({id: currentId}, function(programXml) {
+       modal.hide();
+       programElement.innerHTML = programXml;
+       savedContent = programElement.innerHTML;
+       var programNameElement = programElement.querySelector("tj-program-name");
+       setName(programNameElement == null ? "" + currentId : programNameElement.textContent);
+     });
+   }
 }
-  
-  
+
+
+function openContextMenu(element) {
+  modal.showMenu(element, ["Rename", "Delete"], function(result) {
+    window.console.log(result);
+  });
+}
+
+function openMenu(id) {
+  closeMenu();
+  currentMenu = document.getElementById(id);
+  currentMenu.style.display = "block";
+}
+
+
+function save(callback) {
+  var textAreas = document.body.querySelectorAll('textarea');
+  for (var i = 0; i < textAreas.length; i++) {
+    textAreas[i].textContent = textAreas[i].value;
+  }
+
+  var selected = selectedElement;
+  select(null);
+  var program = document.body.querySelector('tj-program').innerHTML;
+  select(selectedElement);
+
+  if (program == savedContent) {
+    callback();
+  } else {
+    modal.showDeferred("Saving...");
+    io.saveContent(program, {id: currentId, secret: currentSecret}, function(params) {
+
+      modal.hide();
+      savedContent = program;
+      currentId = params['id'];
+      currentSecret = params['secret'];
+
+      location.hash = "#id=" + currentId + ";secret=" + currentSecret;
+
+      programList[currentProgramName] = {id: currentId, secret: currentSecret};
+      localStorage.setItem('programList', JSON.stringify(programList));
+      if (callback != null) {
+        callback();
+      }
+    });
+  }
+}
+
+
 function select(element) {
   if (element == null) {
     if (selectedOperation != null) {
@@ -267,7 +317,8 @@ function select(element) {
     selectedElement = element;
   }
 }
-  
+
+// Event handlers
   
 document.body.oninput = function(event) {
   if (event.target.localName == 'textarea') {
@@ -278,23 +329,25 @@ document.body.oninput = function(event) {
   
 document.onclick = function(event) {
   var element = event.target;
-  var menuHidden = currentMenu != null;
+//  var menuHidden = currentMenu != null;
   closeMenu();
 
-  while (element != null && 
-      element.localName != 'tj-operation-signature' && 
-      element.localName != 'tj-class-name' &&
-      element.localName != 'tj-block-name') {
-    var jsaction = element.getAttribute && element.getAttribute("jsaction");
-    if (jsaction) {
-      handleJsaction(jsaction, element, event);
-      return;
+  if (element != null && (element.localName == 'tj-operation-signature' ||
+      element.localName == 'tj-class-name' || element.localName == 'tj-block-name')) {
+    if (event.clientX > event.target.clientWidth - 20) {
+      openContextMenu(element);
+    } else {
+      select(element.parentNode);
     }
-    element = element.parentNode;
-  }
-
-  if (element != null) {
-    select(element.parentNode);
+  } else {
+    while (element != null) {
+      var jsaction = element.getAttribute && element.getAttribute("jsaction");
+      if (jsaction) {
+        handleJsaction(jsaction, element, event);
+        return;
+      }
+      element = element.parentNode;
+    }
   }
 };
 
@@ -311,43 +364,6 @@ function setName(name) {
   programNameElement.textContent = name;
 }
 
-function load() {
-  var hash = window.location.hash;
-  if (hash.length <= 1 && localStorage.getItem("lastHash")) {
-    hash = localStorage.getItem("lastHash");
-  } else {
-    localStorage.setItem("lastHash", hash);
-  }
-  var params = io.parseParams(hash.substr(1));
-
-  currentId = params['id'];
-  currentSecret = params['secret'];
-
-  var programElement = document.getElementById("program");
-
-  selectedOperation = null;
-  selectedClass = null;
-
-  if (currentId == null) {
-    programElement.innerHTML = EMPTY_PROGRAM;
-    var newName = "Unnamed";
-    var index = 2;
-    while (programList[newName]) {
-      newName = "Unnamed " + index++;
-    }
-    savedContent = programElement.innerHTML;
-    setName(newName);
-  } else {
-    modal.showDeferred("Loading...");
-    io.loadContent({id: currentId}, function(programXml) {
-      modal.hide();
-      programElement.innerHTML = programXml;
-      savedContent = programElement.innerHTML;
-      var programNameElement = programElement.querySelector("tj-program-name");
-      setName(programNameElement == null ? "" + currentId : programNameElement.textContent);
-    });
-  }
-}
 
 window.onhashchange = load;
 load();

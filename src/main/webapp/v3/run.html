@@ -3,7 +3,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" sizes="192x192" href="img/tidej.png">
 </head>    
-<body>
+<img>
 <tj-program id="program" style="display:none"></tj-program>
 <script src="js/io.js"></script>
 <script src="js/codemanagement.js"></script>
@@ -23,6 +23,38 @@ function runProgram(programXml) {
   script.textContent = code;
   document.body.appendChild(script);
 }
+
+function backToIde() {
+  window.console.log("back");
+  var hash = "";
+  for (var key in params) {
+    if (hash != "") {
+      hash += ";";
+    }
+    hash += key + "=" + params[key];
+  }
+  window.location.href = "/v3/#" + hash;
+}
+
+function showBackButton() {
+  var backElement = document.getElementById('back-to-ide');
+  if (backElement == null) {
+    backElement = document.createElement('img');
+    backElement.id = "back-to-ide";
+    backElement.src = "img/tidej.png";
+    backElement.width = 32;
+    backElement.borderRadius = "8px";
+    backElement.style.position = "absolute";
+    backElement.style.bottom = "16px";
+    backElement.style.right = "16px";
+    backElement.onclick = backToIde;
+    backElement.style.cursor = "pointer";
+    document.body.appendChild(backElement)
+  }
+}
+
+showBackButton();
+setInterval(showBackButton, 1000);
 
 </script>
     
