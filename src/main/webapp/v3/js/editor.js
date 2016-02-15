@@ -27,7 +27,7 @@ var EMPTY_PROGRAM =
  '<tj-section>' + 
  '<tj-section-name>Main</tj-section-name>' + 
  '<tj-section-body>' +
- '<tj-block><tj-block-name>Program body</tj-block-name><tj-block-body><textarea></textarea></tj-block-body>' +
+ '<tj-block id="main"><tj-block-name>Program body</tj-block-name><tj-block-body><textarea></textarea></tj-block-body>' +
  '</tj-section-body>' +
  '</tj-section>';
  
@@ -58,7 +58,7 @@ function addClass(name) {
   select(newElement);
 }
 
-function addFunction(name) {
+function addFunction(name, container) {
   if (!name) {
     return;
   }
@@ -69,16 +69,43 @@ function addFunction(name) {
   newElement.innerHTML = "<tj-operation-signature></tj-operation-signature>" +
     "<tj-operation-body><textarea></textarea></tj-operation-body>";
   newElement.querySelector("tj-operation-signature").textContent = name;
-  var functionsBlock = document.getElementById("functions").querySelector("tj-section-body");
-  insertArtifact(functionsBlock, newElement);
+  insertArtifact(container, newElement);
   select(newElement);
 }
 
 // Hide empty sections, open program body if there is no other section.
 function cleanup() {
   var functions = document.getElementById("functions");
+  var empty = 0;
   if (functions.querySelectorAll("tj-operation").length == 0) {
     functions.style.display = "none";
+    empty++;
+  }
+  var classes = document.getElementById("classes");
+  if (classes.querySelectorAll("tj-class").length == 0) {
+    classes.style.display = "none";
+    empty++;
+  }
+  if (document.getElementById("constants").style.display == "none" &&
+      document.getElementById("globals").style.display == "none") {
+    document.getElementById("values").style.display = "none";
+    empty++;
+  }
+
+
+  if (empty == 3) {
+    var blockNames = document.getElementById("program").querySelectorAll("tj-block-name");
+    for (var i = 0; i < blockNames.length; i++) {
+      if (blockNames[i].textContent == "Program body") {
+        blockNames[i].parentNode.id = "main";
+        break;
+      }
+    }
+
+    var main = document.getElementById("main");
+    if (main != null) {
+      select(main);
+    }
   }
 }
 
@@ -98,7 +125,10 @@ function handleJsaction(name, element, event) {
       break;
 
     case 'add-function':
-      modal.prompt("Function name or signature?", "", addFunction);
+      modal.prompt("Function name or signature?", "", function(name) {
+         var container = document.getElementById("functions").querySelector("tj-section-body");
+         addFunction(name, container);
+      });
       break;
 
     case 'load':
@@ -208,12 +238,17 @@ function load() {
    }
 }
 
+function isConstructor(element) {
+  return element.localName == "tj-operation" && element.parentNode.localName == "tj-class-body" &&
+    element.firstElementChild.textContent.startsWith("constructor(");
+}
+
 function insertArtifact(container, artifact) {
   var name = artifact.firstElementChild.textContent;
   var child = container.firstChild;
   while (child != null) {
     var childName = child.firstElementChild.textContent;
-    if (childName > name) {
+    if (childName > name && !isConstructor(child)) {
       break;
     }
     child = child.nextElementSibling;
@@ -227,13 +262,13 @@ function openContextMenu(element) {
 
   var options;
   if (elementName == "tj-operation-signature") {
-    if (name.startsWith("constructor(")) {
+    if (isConstructor(element.parentNode)) {
       options = ["Change Signature"];
     } else {
       options = ["Change Signature", "Delete"];
     }
   } else if (elementName == "tj-class-name") {
-    options = ["Add function", "Rename", "Delete"];
+    options = ["Add Method", "Rename", "Delete"];
   } else if (elementName == "tj-block") {
     options = ["Delete"];
     return;
@@ -258,6 +293,11 @@ function openContextMenu(element) {
           container.removeChild(artifact);
           cleanup();
         }
+      });
+    } else if (result == "Add Method") {
+      modal.prompt("Method name or signature?", "", function(name) {
+        var container = element.parentNode.querySelector("tj-class-body");
+        addFunction(name, container);
       });
     } else {
       window.console.log("menu selection: ", result);
