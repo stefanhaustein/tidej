@@ -74,6 +74,14 @@ function addFunction(name) {
   select(newElement);
 }
 
+// Hide empty sections, open program body if there is no other section.
+function cleanup() {
+  var functions = document.getElementById("functions");
+  if (functions.querySelectorAll("tj-operation").length == 0) {
+    functions.style.display = "none";
+  }
+}
+
 
 function closeMenu() {
   if (currentMenu) {
@@ -215,12 +223,17 @@ function insertArtifact(container, artifact) {
 
 function openContextMenu(element) {
   var elementName = element.localName;
+  var name = element.textContent;
 
   var options;
   if (elementName == "tj-operation-signature") {
-    options = ["Change Signature", "Delete"];
+    if (name.startsWith("constructor(")) {
+      options = ["Change Signature"];
+    } else {
+      options = ["Change Signature", "Delete"];
+    }
   } else if (elementName == "tj-class-name") {
-    options = ["Rename", "Delete"];
+    options = ["Add function", "Rename", "Delete"];
   } else if (elementName == "tj-block") {
     options = ["Delete"];
     return;
@@ -228,7 +241,6 @@ function openContextMenu(element) {
 
   modal.showMenu(element, "menu", options, function(result) {
     if (result == "Rename" || result == "Change Signature") {
-      var name = element.textContent;
       modal.prompt(result == "Rename" ? "New name: " : "New signature:", name, function(newName) {
         if (newName != name) {
           element.textContent = newName;
@@ -236,6 +248,15 @@ function openContextMenu(element) {
           var container = artifact.parentNode;
           container.removeChild(artifact);
           insertArtifact(container, artifact);
+        }
+      });
+    } else if (result == "Delete") {
+      modal.confirm("Delete " + name + "?", function(ok) {
+        if (ok) {
+          var artifact = element.parentNode;
+          var container = artifact.parentNode;
+          container.removeChild(artifact);
+          cleanup();
         }
       });
     } else {

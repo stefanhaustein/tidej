@@ -29,6 +29,31 @@ modal.background.appendChild(modal.menu);
 
 modal.showDeferredTimeout = null;
 
+
+modal.alert = function(label, callback) {
+  modal.show('<p>' + label +'</p><p style="text-align:right"><button>Ok</button></p>');
+  modal.dialog.querySelector("p").innerHTML = label;
+  var buttons = modal.dialog.querySelector("button");
+  button.onclick = function() {
+     modal.hide();
+     if (callback) {
+       callback();
+     }
+  };
+}
+
+modal.confirm = function(label, callback) {
+  modal.show('<p>' + label +'</p><p style="text-align:right"><button>Cancel</button><button>Ok</button></p>');
+  modal.dialog.querySelector("p").innerHTML = label;
+  var buttons = modal.dialog.querySelectorAll("button");
+  buttons[0].onclick = buttons[1].onclick = function() {
+     modal.hide();
+     if (callback) {
+       callback(this.textContent == "Ok");
+     }
+  };
+}
+
 modal.getPosition = function(element) {
   var x = 0;
   var y = 0;
@@ -40,18 +65,6 @@ modal.getPosition = function(element) {
     return {x: x, y: y};
 };
 
-modal.showDeferred = function(label) {
-  modal.showDeferredTimeout = window.setTimeout(function() {modal.show(label);}, 500);
-}
-
-modal.show = function(label) {
-  modal.background.style.backgroundColor = "rgba(0,0,0,0.5)";
-  modal.background.onclick = null;
-  modal.dialog.style.display = "block";
-  modal.showDeferredTimeout = null;
-  modal.dialog.innerHTML = label;
-  document.body.appendChild(modal.background);
-}
 
 modal.hide = function() {
   if (modal.showDeferredTimeout) {
@@ -77,6 +90,21 @@ modal.prompt = function(label, value, callback) {
      }
   };
 }
+
+
+modal.show = function(label) {
+  modal.background.style.backgroundColor = "rgba(0,0,0,0.5)";
+  modal.background.onclick = null;
+  modal.dialog.style.display = "block";
+  modal.showDeferredTimeout = null;
+  modal.dialog.innerHTML = label;
+  document.body.appendChild(modal.background);
+}
+
+modal.showDeferred = function(label) {
+  modal.showDeferredTimeout = window.setTimeout(function() {modal.show(label);}, 500);
+}
+
 
 modal.showMenu = function(anchor, cssClass, options, callback) {
   var pos = modal.getPosition(anchor);
