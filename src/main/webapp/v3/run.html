@@ -14,9 +14,8 @@ var tidejRunner = {};
 tidejRunner.runProgram = function(programXml) {
   var programElement = document.getElementById("program");
   programElement.innerHTML = programXml;
-  var map = {};
+  var map = tidejRunner.map = {};
   var code = buildCode(map, 0, programElement);
-  window.console.log(map);
   var script = document.createElement("script");
   script.textContent = code;
   document.body.appendChild(script);
@@ -35,6 +34,21 @@ tidejRunner.backToIde = function() {
 
 tidejRunner.handleError = function(msg, url, line, col, error) {
   window.console.log("msg:", msg, "url:", url, "line:", line, "col:", col, "error:", error);
+
+  var localLine = 9e9;
+  var artifactName = null;
+  for (var start in tidejRunner.map) {
+    if (line > start && line - start < localLine) {
+      localLine = line - start;
+      artifactName = tidejRunner.map[start];
+    }
+  }
+
+  if (window.confirm("Error in '" + artifactName + "' line " + localLine + ". Open editor?")) {
+    tidejRunner.params["artifact"] = artifactName;
+    tidejRunner.params["line"] = localLine;
+    tidejRunner.backToIde();
+  };
 }
 
 tidejRunner.showBackButton = function() {
