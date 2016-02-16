@@ -9,11 +9,9 @@
 <script src="js/codemanagement.js"></script>
 <script>
 
-var params = io.parseParams(window.location.hash.substr(1));
-window.console.log("params:", params);
-io.loadContent({id: params['id']}, runProgram);
+var tidejRunner = {};
 
-function runProgram(programXml) {
+tidejRunner.runProgram = function(programXml) {
   var programElement = document.getElementById("program");
   programElement.innerHTML = programXml;
   var map = {};
@@ -24,37 +22,46 @@ function runProgram(programXml) {
   document.body.appendChild(script);
 }
 
-function backToIde() {
-  window.console.log("back");
+tidejRunner.backToIde = function() {
   var hash = "";
-  for (var key in params) {
+  for (var key in tidejRunner.params) {
     if (hash != "") {
       hash += ";";
     }
-    hash += key + "=" + params[key];
+    hash += key + "=" + tidejRunner.params[key];
   }
   window.location.href = "/v3/#" + hash;
 }
 
-function showBackButton() {
-  var backElement = document.getElementById('back-to-ide');
+tidejRunner.handleError = function(msg, url, line, col, error) {
+  window.console.log("msg:", msg, "url:", url, "line:", line, "col:", col, "error:", error);
+}
+
+tidejRunner.showBackButton = function() {
+  var backElement = document.getElementById('tidejrunner-back-to-ide');
   if (backElement == null) {
     backElement = document.createElement('img');
-    backElement.id = "back-to-ide";
+    backElement.id = "tidejrunner-back-to-ide";
     backElement.src = "img/tidej.png";
     backElement.width = 32;
     backElement.style.borderRadius = "4px";
     backElement.style.position = "absolute";
     backElement.style.bottom = "16px";
     backElement.style.right = "16px";
-    backElement.onclick = backToIde;
+    backElement.onclick = tidejRunner.backToIde;
     backElement.style.cursor = "pointer";
-    document.body.appendChild(backElement)
+    document.body.appendChild(backElement);
+    setTimeout(tidejRunner.showBackButton, 0);
+  } else {
+    setTimeout(tidejRunner.showBackButton, 100);
   }
 }
 
-showBackButton();
-setInterval(showBackButton, 1000);
+tidejRunner.params = io.parseParams(window.location.hash.substr(1));
+io.loadContent({id: tidejRunner.params['id']}, tidejRunner.runProgram);
+tidejRunner.showBackButton();
+window.onerror = tidejRunner.handleError;
+
 
 </script>
     
