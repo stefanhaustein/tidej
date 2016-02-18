@@ -3,13 +3,22 @@
 <head>
   <title>TideJ</title>
   <script type="text/javascript" src="js/codemanagement.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="icon" sizes="192x192" href="img/tidej.png">
   <link rel="apple-touch-icon" sizes="192x192" href="img/tidej.png">
   <link rel="stylesheet" type="text/css" href="css/editor.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="lib/codemirror.css">
+  <style>
+      .CodeMirror {
+        height: auto;
+      }
+      .line-error {
+        background-color: OrangeRed;
+      }
+  </style>
 </head>
 <body>
 <div id="modal" style="position:fixed;background-color:rgba(0,0,0,0.3);top:0;bottom:0;left:0;right:0;z-index:100;display:none">
@@ -58,5 +67,6 @@
 <script src="js/io.js"></script>
 <script src="js/modal.js"></script>
 <script src="js/editor.js"></script>
+<script src="lib/codemirror-compressed.js"></script>
 </body>
 </html>

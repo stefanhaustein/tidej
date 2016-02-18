@@ -6,6 +6,7 @@ var currentProgramName = "";
 
 var currentId;
 var currentSecret;
+var currentEditor = null;
 
 var programListText = localStorage.getItem('programList');
 var programList = programListText == null ? {} : JSON.parse(programListText);
@@ -234,6 +235,24 @@ function load() {
        savedContent = programElement.innerHTML;
        var programNameElement = programElement.querySelector("tj-program-name");
        setName(programNameElement == null ? "" + currentId : programNameElement.textContent);
+
+       if (params["line"] && params["artifact"]) {
+         var artifact = params["artifact"];
+         var type = artifact[0];
+         var artifactName = artifact.substr(2);
+         if (type == 'f' || type == 'b') {
+           // TODO: add a function for looking up a specific artifact
+           var ops = document.body.querySelectorAll(type == 'f' ? "tj-operation-signature" : "tj-block-name");
+           for (var i = 0; i < ops.length; i++) {
+             if (ops[i].textContent == artifactName) {
+               select(ops[i].parentNode);
+               currentEditor.addLineClass(parseInt(params["line"]) - 1, 'wrap', 'line-error');
+             }
+           }
+         }
+         var line = params[line];
+       }
+
      });
    }
 }
@@ -313,13 +332,14 @@ function openMenu(id) {
 
 
 function save(callback) {
+  var selected = selectedElement;
+  select(null);  // detaches editor
+
   var textAreas = document.body.querySelectorAll('textarea');
   for (var i = 0; i < textAreas.length; i++) {
     textAreas[i].textContent = textAreas[i].value;
   }
 
-  var selected = selectedElement;
-  select(null);
   var program = document.body.querySelector('tj-program').innerHTML;
   select(selectedElement);
 
@@ -347,6 +367,10 @@ function save(callback) {
 
 
 function select(element) {
+  if (currentEditor != null) {
+    currentEditor.toTextArea();
+    currentEditor = null;
+  }
   if (element == null) {
     if (selectedOperation != null) {
       selectedOperation.removeAttribute('class');
@@ -391,26 +415,17 @@ function select(element) {
         selectedClass.removeAttribute('class');
         selectedClass = null;
       }
-      var ta = selectedOperation.querySelectorAll('textarea');
-      window.console.log(ta);
-      for (var i = 0; i < ta.length; i++) {
-        autoresize(ta[i]);
-      }
+      var textarea = selectedOperation.querySelector('textarea');
+      //autoresize(textarea);
+
+      currentEditor = CodeMirror.fromTextArea(textarea, {mode: "javascript", lineWrapping: true});
     }
     selectedElement = element;
   }
 }
 
-// Event handlers
-  
-document.body.oninput = function(event) {
-  if (event.target.localName == 'textarea') {
-    autoresize(event.target);
-  }
-};
-  
-  
-document.onclick = function(event) {
+
+function handleClick(event) {
   var element = event.target;
 //  var menuHidden = currentMenu != null;
   closeMenu();
@@ -445,6 +460,29 @@ function setName(name) {
     programElement.insertBefore(programNameElement, programElement.firstChild);
   }
   programNameElement.textContent = name;
+}
+
+// Event handlers
+
+
+document.body.onclick = handleClick;
+
+/*
+document.body.oninput = function(event) {
+  if (event.target.localName == 'textarea') {
+    autoresize(event.target);
+  }
+};*/
+
+document.body.ontouchstart = function(event) {
+  touchStartElement = event.target;
+  document.body.onclick = null;
+}
+
+document.body.ontouchend = function(event) {
+  if (touchStartElement == event.target) {
+    handleClick(event);
+  }
 }
 
 

@@ -16,7 +16,7 @@ function buildOperation(map, line, operationElement, className) {
   var body = operationElement.querySelector('tj-operation-body').textContent;
   var prefix;
   if (className) {
-    map[line] = className + "." + signature;
+    map[line] = "m:" + className + "." + signature;
     var cut = signature.indexOf('(');
     if (signature.startsWith("constructor")) {
       prefix = "function " + className + signature.substr(cut);
@@ -24,7 +24,7 @@ function buildOperation(map, line, operationElement, className) {
       prefix = className + ".prototype." + signature.substr(0, cut) + " = function" + signature.substr(cut);
     }
   } else {
-    map[line] = signature;
+    map[line] = "f:" + signature;
     prefix = 'function ' + signature;
   }
   return prefix + '{\n' + body + '\n}\n\n';
@@ -44,7 +44,7 @@ function buildCode(map, line, rootElement, className) {
     var code = '';
     switch (element.localName) {
     case 'tj-block':
-      map[line] = element.querySelector('tj-block-name').textContent;
+      map[line] = "b:" + element.querySelector('tj-block-name').textContent;
       code = element.querySelector('tj-block-body').textContent;
       break;
       

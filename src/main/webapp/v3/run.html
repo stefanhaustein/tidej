@@ -1,6 +1,6 @@
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="icon" sizes="192x192" href="img/tidej.png">
 </head>    
 <img>
@@ -75,8 +75,6 @@ tidejRunner.params = io.parseParams(window.location.hash.substr(1));
 io.loadContent({id: tidejRunner.params['id']}, tidejRunner.runProgram);
 tidejRunner.showBackButton();
 window.onerror = tidejRunner.handleError;
-
-
 </script>
     
 </body>
