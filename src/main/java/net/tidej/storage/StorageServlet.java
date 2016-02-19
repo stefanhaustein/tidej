@@ -106,11 +106,13 @@ public class StorageServlet extends HttpServlet {
 			Query query = new Query("Code").setFilter(filter).addSort(FIELD_REV, Query.SortDirection.DESCENDING);
 			Iterator<Entity> i = datastore.prepare(query).asIterator();
 			if (i.hasNext()) {
-				existing = i.next();
+                existing = i.next();
 				if (secret.equals(existing.getProperty(FIELD_SECRET))) {
 					rev = ((Number) (existing.getProperty(FIELD_REV))).intValue() + 1;
 					forked_from = (String) existing.getProperty(FIELD_FORKED_FROM);
-				}
+				} else {
+                    existing = null;
+                }
 			} 
 		} 
 		if (rev == -1) {
