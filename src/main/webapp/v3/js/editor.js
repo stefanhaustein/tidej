@@ -121,8 +121,8 @@ function findFunction(signature, optParent) {
   var parent = optParent || document.getElementById("functions");
   var elements = parent.querySelectorAll("tj-operation-signature");
   for (var i = 0; i < elements.length; i++) {
-    if (elements[i].textContent == name) {
-      return element[i].parentNode;
+    if (elements[i].textContent == signature) {
+      return elements[i].parentNode;
     }
   }
   return null;
@@ -305,8 +305,9 @@ function openContextMenu(element) {
     }
   } else if (elementName == "tj-class-name") {
     options = ["Add Method", "Rename", "Delete"];
-  } else if (elementName == "tj-block") {
-    options = ["Delete"];
+  } else if (elementName == "tj-block-name") {
+    options = ["Clear"];
+  } else {
     return;
   }
 
@@ -325,6 +326,9 @@ function openContextMenu(element) {
       modal.confirm("Delete " + name + "?", function(ok) {
         if (ok) {
           var artifact = element.parentNode;
+          if (artifact == selectedElement) {
+            select(null);
+          }
           var container = artifact.parentNode;
           container.removeChild(artifact);
           cleanup();
@@ -335,8 +339,24 @@ function openContextMenu(element) {
         var container = element.parentNode.querySelector("tj-class-body");
         addFunction(name, container);
       });
+    } else if (result == "Clear") {
+      modal.confirm("Clear " + name + "?", function(ok) {
+        if (ok) {
+          var artifact = element.parentNode;
+          if (artifact == selectedElement) {
+            select(null);
+          }
+          var ta = artifact.querySelector("textarea");
+          ta.value = "";
+          ta.innerHTML = "";
+          if (name != "Program body") {
+            artifact.style.display = "none";
+          }
+          cleanup();
+        }
+      });
     } else {
-      window.console.log("menu selection: ", result);
+      window.console.log("unhandled menu selection: ", result);
     }
   });
 }
@@ -456,11 +476,15 @@ function showError(params) {
     break;
   case 'm':
     var cut = name.indexOf('.');
-    artifactElement = findMethod(name.substr(0, cut), name.substr(cut + 1));
+    element = findMethod(name.substr(0, cut), name.substr(cut + 1));
     break;
   }
-  select(element);
-  currentEditor.addLineClass(parseInt(params["line"]) - 1, 'wrap', 'line-error');
+  if (element == null) {
+    window.console.log("artifact not found: " + artifact);
+  } else {
+    select(element);
+    currentEditor.addLineClass(parseInt(params["line"]) - 1, 'wrap', 'line-error');
+  }
 }
 
 function handleClick(event) {
@@ -470,7 +494,11 @@ function handleClick(event) {
 
   if (element != null && (element.localName == 'tj-operation-signature' ||
       element.localName == 'tj-class-name' || element.localName == 'tj-block-name')) {
-    if (event.clientX > event.target.clientWidth - 20) {
+    window.console.log("cx: ", event.clientX, " bcr.l: ", element.getBoundingClientRect().left,
+      " cl: ", element.clientLeft, " cw: ", element.clientWidth);
+    event.stopPropagation();
+    event.preventDefault();
+    if (event.clientX - element.getBoundingClientRect().left - element.clientLeft > element.clientWidth - 40) {
       openContextMenu(element);
     } else {
       select(element.parentNode);
@@ -479,6 +507,8 @@ function handleClick(event) {
     while (element != null) {
       var jsaction = element.getAttribute && element.getAttribute("jsaction");
       if (jsaction) {
+        event.stopPropagation();
+        event.preventDefault();
         handleJsaction(jsaction, element, event);
         return;
       }
@@ -489,7 +519,7 @@ function handleClick(event) {
 
 function setName(name) {
   currentProgramName = name;
-  document.title = "TideJ" + name.startsWith("Unnamed") ? "" : (": " + name);
+  document.title = "TideJ" + (name.startsWith("Unnamed") ? "" : (": " + name));
   document.getElementById('title').textContent = name;
   var programNameElement = document.body.querySelector("tj-program-name");
   if (programNameElement == null) {
@@ -503,7 +533,7 @@ function setName(name) {
 // Event handlers
 
 
-document.body.onclick = handleClick;
+document.onclick = handleClick;
 
 /*
 document.body.oninput = function(event) {
@@ -512,15 +542,35 @@ document.body.oninput = function(event) {
   }
 };*/
 
-document.body.ontouchstart = function(event) {
-  touchStartElement = event.target;
-  document.body.onclick = null;
+document.ontouchstart = function(event) {
+  // window.console.log("touch start", event);
+  if (event.touches.length == 1) {
+    touchStartElement = event.target;
+    touchStartX = event.touches[0].clientX;
+    touchStartY = event.touches[0].clientY;
+    touchStartTime = Date.now();
+  } else {
+    touchStartElement = null;
+  }
+  document.onclick = null;
 }
 
-document.body.ontouchend = function(event) {
-  if (touchStartElement == event.target) {
-    handleClick(event);
+document.ontouchend = function(event) {
+  // window.console.log("touch end", event);
+  if (touchStartElement == event.target &&
+      event.touches.length == 0 &&
+      event.changedTouches.length == 1 && Date.now() - touchStartTime < 300) {
+    var t0 = event.changedTouches[0];
+    var dx = t0.clientX - touchStartX;
+    var dy = t0.clientY - touchStartY;
+    var d2 = dx * dx + dy * dy;
+    if (d2 < 256) {
+      event.clientX = touchStartX;
+      event.clientY = touchStartY;
+      handleClick(event);
+    }
   }
+  touchStartElement = null;
 }
 
 

@@ -45,7 +45,7 @@ function buildCode(map, line, rootElement, className) {
     switch (element.localName) {
     case 'tj-block':
       map[line] = "b:" + element.querySelector('tj-block-name').textContent;
-      code = element.querySelector('tj-block-body').textContent;
+      code = element.querySelector('tj-block-body').textContent + "\n";
       break;
       
     case 'tj-operation':

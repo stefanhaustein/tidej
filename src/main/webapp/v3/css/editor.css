@@ -42,35 +42,35 @@ body {
 
 
 .menu > div {
-    background-color: white;
-    border-bottom:1px solid lightgray;
-    padding:10px;
-    cursor: pointer;
+  background-color: white;
+  border-bottom:1px solid lightgray;
+  padding:10px;
+  cursor: pointer;
 }
 
 .menu > div:hover {
-    background-color:gray;
-    color:white;
+  background-color:gray;
+  color:white;
 }
 
 tj-section-name {
-   margin: 16px 16px 8px 16px;
-   color: gray;
-   display: block;
-   overflow: hidden;
-   text-overflow: ellipsis;
-   white-space: nowrap;
+  margin: 16px 16px 8px 16px;
+  color: gray;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 tj-block,
 tj-class,
 tj-operation {
-    margin: 0 8px;
-    border: 1px solid lightgray;
-    background-color: white;
-    display: block;
-    margin-bottom: -1px;
-    padding: 0;
+  margin: 0 8px;
+  border: 1px solid lightgray;
+  background-color: white;
+  display: block;
+  margin-bottom: -1px;
+  padding: 0;
 }
 
 tj-block-name,
@@ -86,7 +86,7 @@ tj-class-signature {
   padding: 8px;
 }
 
-#values tj-block-name:after,
+tj-block-name:after,
 tj-class-name:after,
 tj-operation-signature:after {
   content: "\022ee";
@@ -113,12 +113,12 @@ tj-operation.selected > tj-operation-signature:after {
 tj-block-body,
 tj-class-body,
 tj-operation-body {
-    display: none;
+  display: none;
 }
 
 tj-block.selected,
 tj-operation.selected {
-    margin: 8px -1px;
+  margin: 8px -1px;
 }
 
 tj-class tj-operation.selected {
@@ -127,31 +127,31 @@ tj-class tj-operation.selected {
 
 tj-block.selected > tj-block-name,
 tj-operation.selected > tj-operation-signature {
-    padding: 8px 16px;
-    font-weight: bold;
+  padding: 8px 16px;
+  font-weight: bold;
 }
     
 tj-block.selected > tj-block-body,
 tj-operation.selected > tj-operation-body {
-    display: block;
-    border-top: 1px solid lightgray;
-    padding: 8px 16px;
+  display: block;
+  border-top: 1px solid lightgray;
+  padding: 8px 16px;
 }
 
 tj-class.selected {
-    background-color: lightgray;
-    margin: 8px -1px;
-    padding-bottom: 8px;
-    border: 0;
+  background-color: lightgray;
+  margin: 8px -1px;
+  padding-bottom: 8px;
+  border: 0;
 }
 
 tj-class.selected > tj-class-body {
-    display: block;
+  display: block;
 }
 
 tj-class.selected > tj-class-name {
-    padding: 8px 16px 0px 16px;
-    margin-bottom: 8px;
+  padding: 8px 16px 0px 16px;
+  margin-bottom: 8px;
 }
 
 tj-program-name {
@@ -159,12 +159,12 @@ tj-program-name {
 }
 
 textarea { 
-    border: 0 none white;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    outline: none;
-    resize: none;
-    width:100%;
-    font-size: 12px;
+  border: 0 none white;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  outline: none;
+  resize: none;
+  width:100%;
+  font-size: 12px;
 }

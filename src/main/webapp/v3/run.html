@@ -18,6 +18,8 @@ tidejRunner.runProgram = function(programXml) {
   var code = buildCode(map, 0, programElement);
   var script = document.createElement("script");
   script.textContent = code;
+  window.console.log("Code below this line");
+  window.console.log(code);
   document.body.appendChild(script);
 }
 
@@ -35,10 +37,12 @@ tidejRunner.backToIde = function() {
 tidejRunner.handleError = function(msg, url, line, col, error) {
   window.console.log("msg:", msg, "url:", url, "line:", line, "col:", col, "error:", error);
 
+  line--;  // Map is 0-based
   var localLine = 9e9;
   var artifactName = null;
-  for (var start in tidejRunner.map) {
-    if (line > start && line - start < localLine) {
+  for (var key in tidejRunner.map) {
+    var start = parseInt(key);
+    if (line >= start && line - start < localLine) {
       localLine = line - start;
       artifactName = tidejRunner.map[start];
     }
@@ -46,7 +50,7 @@ tidejRunner.handleError = function(msg, url, line, col, error) {
 
   if (window.confirm("" + msg + " in '" + artifactName.substr(2) + "' line " + localLine + ". Open editor?")) {
     tidejRunner.params["artifact"] = artifactName;
-    tidejRunner.params["line"] = localLine;
+    tidejRunner.params["line"] = localLine + 1;
     tidejRunner.params["error"] = msg;
     tidejRunner.backToIde();
   };

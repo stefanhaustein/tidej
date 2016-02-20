@@ -26,7 +26,7 @@ io.loadContent = function(params, callback) {
 	  var cut = rawContent.indexOf('\n');
 	  var meta = io.parseParams(rawContent.substr(0, cut));
 	  var content = rawContent.substr(cut + 1);
-	  console.log("raw:", rawContent, "content", content, "meta:", meta);
+	  //console.log("raw:", rawContent, "content", content, "meta:", meta);
 	  if (callback) {
 	 	callback(content, meta);
 	  }
