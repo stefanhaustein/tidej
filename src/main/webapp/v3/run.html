@@ -44,9 +44,10 @@ tidejRunner.handleError = function(msg, url, line, col, error) {
     }
   }
 
-  if (window.confirm("Error in '" + artifactName + "' line " + localLine + ". Open editor?")) {
+  if (window.confirm("" + msg + " in '" + artifactName.substr(2) + "' line " + localLine + ". Open editor?")) {
     tidejRunner.params["artifact"] = artifactName;
     tidejRunner.params["line"] = localLine;
+    tidejRunner.params["error"] = msg;
     tidejRunner.backToIde();
   };
 }

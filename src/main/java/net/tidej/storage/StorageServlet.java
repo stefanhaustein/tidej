@@ -25,6 +25,7 @@ public class StorageServlet extends HttpServlet {
 	static final String FIELD_FORKED_FROM = "forked_from";
 	static final String FIELD_SECRET = "secret";
 	static final String FIELD_TAG = "tag";
+    static final String FIELD_NAME = "name";
 	
 	DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 	Random random = new Random();
@@ -88,21 +89,14 @@ public class StorageServlet extends HttpServlet {
 		String prev_rev = req.getParameter("rev");
 		String secret = req.getParameter("secret");
 		String tag = req.getParameter("tag");
+        String name = req.getParameter("name");
 		String forked_from = id;
 		int rev = -1;
 
-		System.err.println("id: " + id + " secret:" + secret);
 		Entity existing = null;
 		
 		if (id != null && secret != null) {
 			Query.Filter filter = new Query.FilterPredicate(FIELD_ID, Query.FilterOperator.EQUAL, id);
-			if (tag != null && !tag.trim().equals("")) {
-				Query.Filter tagFilter = new Query.FilterPredicate(FIELD_TAG, Query.FilterOperator.EQUAL, tag);
-				ArrayList<Query.Filter> filterList = new ArrayList<>();
-				filterList.add(filter);
-				filterList.add(tagFilter);
-				filter = new Query.CompositeFilter(Query.CompositeFilterOperator.AND, filterList);
-			}
 			Query query = new Query("Code").setFilter(filter).addSort(FIELD_REV, Query.SortDirection.DESCENDING);
 			Iterator<Entity> i = datastore.prepare(query).asIterator();
 			if (i.hasNext()) {
@@ -110,10 +104,26 @@ public class StorageServlet extends HttpServlet {
 				if (secret.equals(existing.getProperty(FIELD_SECRET))) {
 					rev = ((Number) (existing.getProperty(FIELD_REV))).intValue() + 1;
 					forked_from = (String) existing.getProperty(FIELD_FORKED_FROM);
+                    if (tag != null && !tag.isEmpty()) {
+                        boolean tagFound = false;
+                        while (true) {
+                            if (tag.equals(existing.getProperty(FIELD_TAG))) {
+                                tagFound = true;
+                                break;
+                            }
+                            if (!i.hasNext()) {
+                                break;
+                            }
+                            existing = i.next();
+                        }
+                        if (!tagFound) {
+                            existing = null;
+                        }
+                    }
 				} else {
                     existing = null;
                 }
-			} 
+			}
 		} 
 		if (rev == -1) {
 			id = Long.toString(random.nextLong() & 0x7fffffffffffffffL, 36);
@@ -128,6 +138,7 @@ public class StorageServlet extends HttpServlet {
 		entity.setProperty(FIELD_PREV_REV, prev_rev);
 		entity.setProperty(FIELD_CONTENT, content);
 		entity.setProperty(FIELD_TAG, tag);
+        entity.setProperty(FIELD_NAME, name);
 		datastore.put(entity);
 		resp.setContentType("text/plain");
 		resp.getWriter().println("id=" + id + ";secret=" + secret + ";rev=" + rev + ";tag=" + tag);

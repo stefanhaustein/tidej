@@ -93,7 +93,6 @@ function cleanup() {
     empty++;
   }
 
-
   if (empty == 3) {
     var blockNames = document.getElementById("program").querySelectorAll("tj-block-name");
     for (var i = 0; i < blockNames.length; i++) {
@@ -118,6 +117,38 @@ function closeMenu() {
   }
 }
 
+function findFunction(signature, optParent) {
+  var parent = optParent || document.getElementById("functions");
+  var elements = parent.querySelectorAll("tj-operation-signature");
+  for (var i = 0; i < elements.length; i++) {
+    if (elements[i].textContent == name) {
+      return element[i].parentNode;
+    }
+  }
+  return null;
+}
+
+function findBlock(name) {
+  var parent = document.getElementById("program");
+  var elements = parent.querySelectorAll("tj-block-name");
+  for (var i = 0; i < elements.length; i++) {
+    if (elements[i].textContent == name) {
+      return elements[i].parentNode;
+    }
+  }
+  return null;
+}
+
+function findMethod(className, signature) {
+  var parent = document.getElementById("program");
+  var elements = parent.querySelectorAll("tj-class-name");
+  for (var i = 0; i < elements.length; i++) {
+    if (elements[i].textContent == name) {
+      return findFunction(signature, elements[i].parentNode);
+    }
+  }
+  return null;
+}
 
 function handleJsaction(name, element, event) {
   switch(name) {
@@ -237,22 +268,8 @@ function load() {
        setName(programNameElement == null ? "" + currentId : programNameElement.textContent);
 
        if (params["line"] && params["artifact"]) {
-         var artifact = params["artifact"];
-         var type = artifact[0];
-         var artifactName = artifact.substr(2);
-         if (type == 'f' || type == 'b') {
-           // TODO: add a function for looking up a specific artifact
-           var ops = document.body.querySelectorAll(type == 'f' ? "tj-operation-signature" : "tj-block-name");
-           for (var i = 0; i < ops.length; i++) {
-             if (ops[i].textContent == artifactName) {
-               select(ops[i].parentNode);
-               currentEditor.addLineClass(parseInt(params["line"]) - 1, 'wrap', 'line-error');
-             }
-           }
-         }
-         var line = params[line];
+         showError(params);
        }
-
      });
    }
 }
@@ -347,7 +364,7 @@ function save(callback) {
     callback();
   } else {
     modal.showDeferred("Saving...");
-    io.saveContent(program, {id: currentId, secret: currentSecret}, function(params) {
+    io.saveContent(program, {id: currentId, secret: currentSecret, name: currentProgramName}, function(params) {
 
       modal.hide();
       savedContent = program;
@@ -377,8 +394,8 @@ function select(element) {
       selectedOperation = null;
     }
     if (selectedClass != null) {
-      selectedOperation.removeAttribute('class');
-      selectedOperation = null;
+      selectedClass.removeAttribute('class');
+      selectedClass = null;
     }
     selectedElement = null;
     return;
@@ -407,14 +424,15 @@ function select(element) {
     selectedElement = null;
   } else {
     element.className = 'selected';
+    if (selectedClass != null && selectedClass != element.parentNode.parentNode) {
+      selectedClass.removeAttribute('class');
+      selectedClass = null;
+    }
     if (element.localName == 'tj-class') {
       selectedClass = element;
     } else {
       selectedOperation = element;
-      if (selectedClass != null && selectedClass != element.parentNode.parentNode) {
-        selectedClass.removeAttribute('class');
-        selectedClass = null;
-      }
+
       var textarea = selectedOperation.querySelector('textarea');
       //autoresize(textarea);
 
@@ -424,6 +442,26 @@ function select(element) {
   }
 }
 
+function showError(params) {
+  var artifact = params["artifact"];
+  var type = artifact[0];
+  var name = artifact.substr(2);
+  var element;
+  switch (type) {
+  case 'f':
+    element = findFunction(name);
+    break;
+  case 'b':
+    element = findBlock(name);
+    break;
+  case 'm':
+    var cut = name.indexOf('.');
+    artifactElement = findMethod(name.substr(0, cut), name.substr(cut + 1));
+    break;
+  }
+  select(element);
+  currentEditor.addLineClass(parseInt(params["line"]) - 1, 'wrap', 'line-error');
+}
 
 function handleClick(event) {
   var element = event.target;

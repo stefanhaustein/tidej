@@ -6,12 +6,14 @@ body {
   height: 100%;
   font-size: 15px;
   font-family: droid,arial,sans-serif;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 #editor {
   margin-left: auto;
   margin-right: auto;
-  padding: 16px;
+  margin-top: 80px;
   max-width: 800px;
 }
 
@@ -35,6 +37,7 @@ body {
   top:55px;
   position:fixed;
   border-bottom: 0;
+  z-index: 20;
 }
 
 
@@ -51,7 +54,7 @@ body {
 }
 
 tj-section-name {
-   margin: 16px 32px 8px 32px;
+   margin: 16px 16px 8px 16px;
    color: gray;
    display: block;
    overflow: hidden;
@@ -62,8 +65,7 @@ tj-section-name {
 tj-block,
 tj-class,
 tj-operation {
-    margin-left: 16px;
-    margin-right: 16px;
+    margin: 0 8px;
     border: 1px solid lightgray;
     background-color: white;
     display: block;
@@ -75,23 +77,38 @@ tj-block-name,
 tj-class-name,
 tj-operation-signature,
 tj-class-signature {
+  position: relative;
   cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   display: block;
-  padding: 8px 16px;
+  padding: 8px;
 }
 
 #values tj-block-name:after,
 tj-class-name:after,
-tj-operation-signature:after,
-tj-class-signature:after {
+tj-operation-signature:after {
   content: "\022ee";
-  float: right;
+  position: absolute;
+  padding: 8px;
+  right: 0;
+  top: 0;
   display: block;
+  background-color: white;
 }
 
+
+tj-class.selected > tj-class-name:after {
+  background-color: lightgray;
+}
+
+
+#values tj-block.selected > tj-block-name:after,
+tj-class.selected > tj-class-name:after,
+tj-operation.selected > tj-operation-signature:after {
+  padding: 8px 16px;
+}
 
 tj-block-body,
 tj-class-body,
@@ -101,12 +118,16 @@ tj-operation-body {
 
 tj-block.selected,
 tj-operation.selected {
-    margin: 8px 0;
+    margin: 8px -1px;
+}
+
+tj-class tj-operation.selected {
+  margin: 8px 0;
 }
 
 tj-block.selected > tj-block-name,
 tj-operation.selected > tj-operation-signature {
-    padding: 12px 32px;
+    padding: 8px 16px;
     font-weight: bold;
 }
     
@@ -114,21 +135,23 @@ tj-block.selected > tj-block-body,
 tj-operation.selected > tj-operation-body {
     display: block;
     border-top: 1px solid lightgray;
-    padding: 8px 32px;
+    padding: 8px 16px;
 }
 
 tj-class.selected {
     background-color: lightgray;
-    margin: 16px 0;
-    padding-bottom: 12px;
+    margin: 8px -1px;
+    padding-bottom: 8px;
     border: 0;
 }
-tj-class.selected > tj-class-signature {
-    padding: 16px 32px;
-    font-weight: bold;
-}
+
 tj-class.selected > tj-class-body {
     display: block;
+}
+
+tj-class.selected > tj-class-name {
+    padding: 8px 16px 0px 16px;
+    margin-bottom: 8px;
 }
 
 tj-program-name {
