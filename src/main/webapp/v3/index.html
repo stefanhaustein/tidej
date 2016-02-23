@@ -11,6 +11,7 @@
   <link rel="stylesheet" type="text/css" href="css/editor.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="lib/codemirror.css">
+  <link rel="stylesheet" href="lib/lint/lint.css">
   <style>
       .CodeMirror {
         height: auto;
@@ -18,11 +19,28 @@
       .line-error {
         background-color: OrangeRed;
       }
+
+      .lint-error {
+        font-family: sans-serif;
+        font-size: 70%;
+        background: #ffa;
+        color: #a00;
+        padding: 2px 5px 3px;
+      }
+      .lint-error-icon {
+        color: white;
+        background-color: red;
+        font-weight: bold;
+        border-radius: 50%;
+        padding: 0 3px;
+        margin-right: 7px;
+      }
+
   </style>
 </head>
 <body>
 
-</div>
+<div id="extra">
 <div id="editor">
 <div id="topbar" style="position:fixed;background-color:lightgreen;top:0;left:0;width:100%;z-index:10">
   <div class="menu-title" jsaction="menu" data-id="main-menu"><i class="fa fa-bars"></i>&nbsp;&nbsp;<span id="title">TideJ</span></div>
@@ -63,10 +81,14 @@
 
 <tj-program id="program">
 </tj-program>
-</div>
+
+</div> <!-- editor -->
+</div> <!-- extra -->
+
 <script src="js/io.js"></script>
 <script src="js/modal.js"></script>
-<script src="js/editor.js"></script>
+<script src="lib/jshint.js"></script>
 <script src="lib/codemirror-compressed.js"></script>
+<script src="js/editor.js"></script>
 </body>
 </html>

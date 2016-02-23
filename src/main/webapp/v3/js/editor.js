@@ -403,6 +403,8 @@ function save(callback) {
 }
 
 
+var lintTimer;
+
 function select(element) {
   if (currentEditor != null) {
     currentEditor.toTextArea();
@@ -457,6 +459,12 @@ function select(element) {
       //autoresize(textarea);
 
       currentEditor = CodeMirror.fromTextArea(textarea, {mode: "javascript", lineWrapping: true});
+
+      currentEditor.on("change", function() {
+        clearTimeout(lintTimer);
+        lintTimer = setTimeout(updateHints, 500);
+      });
+      setTimeout(updateHints, 100);
     }
     selectedElement = element;
   }
@@ -571,6 +579,41 @@ document.ontouchend = function(event) {
     }
   }
   touchStartElement = null;
+}
+
+
+var widgets = []
+function updateHints() {
+  var editor = currentEditor;
+  if (editor == null) {
+    return;
+  }
+
+  editor.operation(function(){
+    for (var i = 0; i < widgets.length; ++i) {
+      editor.removeLineWidget(widgets[i]);
+    }
+    widgets.length = 0;
+
+    JSHINT(editor.getValue());
+    for (var i = 0; i < JSHINT.errors.length; ++i) {
+      var err = JSHINT.errors[i];
+      if (!err) {
+        continue;
+      }
+      var msg = document.createElement("div");
+      var icon = msg.appendChild(document.createElement("span"));
+      icon.innerHTML = "&nbsp;!&nbsp;"; // "&#215;";
+      icon.className = "lint-error-icon";
+      msg.appendChild(document.createTextNode(err.reason));
+      msg.className = "lint-error";
+      widgets.push(editor.addLineWidget(err.line - 1, msg, {coverGutter: false, noHScroll: true}));
+    }
+  });
+  var info = editor.getScrollInfo();
+  var after = editor.charCoords({line: editor.getCursor().line + 1, ch: 0}, "local").top;
+  if (info.top + info.clientHeight < after)
+    editor.scrollTo(null, after - info.clientHeight + 3);
 }
 
 
