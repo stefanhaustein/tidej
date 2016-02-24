@@ -7,20 +7,19 @@ var currentProgramName = "";
 var currentId;
 var currentSecret;
 var currentEditor = null;
+var currentError = null;
 
 var programListText = localStorage.getItem('programList');
 var programList = programListText == null ? {} : JSON.parse(programListText);
 var savedContent = null;
-
-window.console.log("program list: ", programList);
 
 var EMPTY_PROGRAM = 
  '<tj-program-name>Unnamed</tj-program-name>' +
  '<tj-section id="values" style="display:none">' +
  '<tj-section-name>Values</tj-section-name>' + 
  '<tj-section-body>' +
- '<tj-block id="constants" style="display:none"><tj-block-name>Constants</tj-block-name><tj-block-body><textarea></textarea></tj-block>' + 
- '<tj-block id="globals" style="display:none"><tj-block-name>Global Variables</tj-block-name><tj-block-body><textarea></textarea></tj-block>' + 
+ '<tj-block id="constants" style="display:none"><tj-block-name>Constants</tj-block-name><tj-block-body></tj-block>' +
+ '<tj-block id="globals" style="display:none"><tj-block-name>Global Variables</tj-block-name><tj-block-body></tj-block>' +
  '</tj-section-body>' + 
  '</tj-section>' + 
  '<tj-section id="functions" style="display:none"><tj-section-name>Function</tj-section-name><tj-section-body></tj-section-body></tj-section>' +
@@ -28,7 +27,7 @@ var EMPTY_PROGRAM =
  '<tj-section>' + 
  '<tj-section-name>Main</tj-section-name>' + 
  '<tj-section-body>' +
- '<tj-block id="main"><tj-block-name>Program body</tj-block-name><tj-block-body><textarea></textarea></tj-block-body>' +
+ '<tj-block id="main"><tj-block-name>Program body</tj-block-name><tj-block-body></tj-block-body>' +
  '</tj-section-body>' +
  '</tj-section>';
  
@@ -52,7 +51,7 @@ function addClass(name) {
   var newElement = document.createElement("tj-class");
   newElement.innerHTML = "<tj-class-name></tj-class-name><tj-class-body><tj-operation>" +
       "<tj-operation-signature>constructor()</tj-operation-signature>" +
-      "<tj-operation-body><textarea></textarea></tj-operation-body>"+
+      "<tj-operation-body></tj-operation-body>"+
       "</tj-operation></tj-class-body>";
   newElement.querySelector("tj-class-name").textContent = name;
   insertArtifact(classesBlock, newElement);
@@ -68,7 +67,7 @@ function addFunction(name, container) {
   }
   var newElement = document.createElement("tj-operation");
   newElement.innerHTML = "<tj-operation-signature></tj-operation-signature>" +
-    "<tj-operation-body><textarea></textarea></tj-operation-body>";
+    "<tj-operation-body></tj-operation-body>";
   newElement.querySelector("tj-operation-signature").textContent = name;
   insertArtifact(container, newElement);
   select(newElement);
@@ -267,8 +266,11 @@ function load() {
        var programNameElement = programElement.querySelector("tj-program-name");
        setName(programNameElement == null ? "" + currentId : programNameElement.textContent);
 
-       if (params["line"] && params["artifact"]) {
-         showError(params);
+       var errorString = localStorage.getItem("tidej.error");
+       if (errorString && errorString != "null") {
+         localStorage.removeItem("tidej.error");
+         currentError = JSON.parse(errorString);
+         showError(currentError);
        }
      });
    }
@@ -346,9 +348,8 @@ function openContextMenu(element) {
           if (artifact == selectedElement) {
             select(null);
           }
-          var ta = artifact.querySelector("textarea");
-          ta.value = "";
-          ta.innerHTML = "";
+          var body = artifact.querySelector("block-body");
+          body.innerHTML = "";
           if (name != "Program body") {
             artifact.style.display = "none";
           }
@@ -371,11 +372,6 @@ function openMenu(id) {
 function save(callback) {
   var selected = selectedElement;
   select(null);  // detaches editor
-
-  var textAreas = document.body.querySelectorAll('textarea');
-  for (var i = 0; i < textAreas.length; i++) {
-    textAreas[i].textContent = textAreas[i].value;
-  }
 
   var program = document.body.querySelector('tj-program').innerHTML;
   select(selectedElement);
@@ -407,7 +403,9 @@ var lintTimer;
 
 function select(element) {
   if (currentEditor != null) {
-    currentEditor.toTextArea();
+    var value = currentEditor.getValue();
+    var body = selectedElement.querySelector("tj-operation-body,tj-block-body");
+    body.textContent = value;
     currentEditor = null;
   }
   if (element == null) {
@@ -455,14 +453,23 @@ function select(element) {
     } else {
       selectedOperation = element;
 
-      var textarea = selectedOperation.querySelector('textarea');
+      var body = selectedOperation.querySelector('tj-operation-body,tj-block-body');
       //autoresize(textarea);
 
-      currentEditor = CodeMirror.fromTextArea(textarea, {mode: "javascript", lineWrapping: true});
+      //currentEditor = CodeMirror.fromTextArea(textarea, );
+
+      var content = body.textContent;
+      body.innerHTML = "";
+      currentEditor = CodeMirror(function(element) {
+        body.appendChild(element);
+      }, {value: content, mode: "javascript", lineWrapping: true});
 
       currentEditor.on("change", function() {
         clearTimeout(lintTimer);
         lintTimer = setTimeout(updateHints, 500);
+        if (currentError != null && currentError.element == selectedElement) {
+          currentError = null;
+        }
       });
       setTimeout(updateHints, 100);
     }
@@ -489,9 +496,10 @@ function showError(params) {
   }
   if (element == null) {
     window.console.log("artifact not found: " + artifact);
+    currentError = null;
   } else {
     select(element);
-    currentEditor.addLineClass(parseInt(params["line"]) - 1, 'wrap', 'line-error');
+    currentError.element = element;
   }
 }
 
@@ -565,9 +573,8 @@ document.ontouchstart = function(event) {
 
 document.ontouchend = function(event) {
   // window.console.log("touch end", event);
-  if (touchStartElement == event.target &&
-      event.touches.length == 0 &&
-      event.changedTouches.length == 1 && Date.now() - touchStartTime < 300) {
+  var dt = Date.now() - touchStartTime;
+  if (event.changedTouches.length >= 1 && dt < 500) {
     var t0 = event.changedTouches[0];
     var dx = t0.clientX - touchStartX;
     var dy = t0.clientY - touchStartY;
@@ -576,7 +583,11 @@ document.ontouchend = function(event) {
       event.clientX = touchStartX;
       event.clientY = touchStartY;
       handleClick(event);
+    } else {
+    //  window.alert("failed click; d2: " + d2);
     }
+  } else {
+    // window.alert("failed click; dt: " + dt + " ctl: " + event.changedTouches.length);
   }
   touchStartElement = null;
 }
@@ -596,16 +607,28 @@ function updateHints() {
     widgets.length = 0;
 
     JSHINT(editor.getValue());
-    for (var i = 0; i < JSHINT.errors.length; ++i) {
-      var err = JSHINT.errors[i];
+
+    var errors = JSHINT.errors.slice(0);
+    if (currentError != null && currentError.element == selectedElement) {
+      errors.push(currentError);
+    }
+
+    for (var i = 0; i < errors.length; ++i) {
+      var err = errors[i];
       if (!err) {
         continue;
       }
+      var reason = err.reason;
+      if (currentError && currentError != err && reason &&
+        reason.startsWith("Unrecoverable syntax error")) {
+        continue;
+      }
+
       var msg = document.createElement("div");
       var icon = msg.appendChild(document.createElement("span"));
       icon.innerHTML = "&nbsp;!&nbsp;"; // "&#215;";
       icon.className = "lint-error-icon";
-      msg.appendChild(document.createTextNode(err.reason));
+      msg.appendChild(document.createTextNode(reason));
       msg.className = "lint-error";
       widgets.push(editor.addLineWidget(err.line - 1, msg, {coverGutter: false, noHScroll: true}));
     }

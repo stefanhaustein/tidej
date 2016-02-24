@@ -49,9 +49,12 @@ tidejRunner.handleError = function(msg, url, line, col, error) {
   }
 
   if (window.confirm("" + msg + " in '" + artifactName.substr(2) + "' line " + localLine + ". Open editor?")) {
-    tidejRunner.params["artifact"] = artifactName;
-    tidejRunner.params["line"] = localLine + 1;
-    tidejRunner.params["error"] = msg;
+    var errorData = {
+      artifact: artifactName,
+      line: localLine + 1,
+      reason: msg
+    };
+    localStorage.setItem("tidej.error", JSON.stringify(errorData));
     tidejRunner.backToIde();
   };
 }
