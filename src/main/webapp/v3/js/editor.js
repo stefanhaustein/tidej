@@ -13,7 +13,17 @@ var programListText = localStorage.getItem('programList');
 var programList = programListText == null ? {} : JSON.parse(programListText);
 var savedContent = null;
 
-var EMPTY_PROGRAM = 
+var EMPTY_CLASS_INNER =
+  "<tj-class-name></tj-class-name><tj-class-body><tj-operation>" +
+  "<tj-operation-signature>constructor()</tj-operation-signature>" +
+  "<tj-operation-body></tj-operation-body>"+
+  "</tj-operation></tj-class-body>"
+
+var EMPTY_OPERATION_INNER =
+  "<tj-operation-signature></tj-operation-signature>" +
+  "<tj-operation-body></tj-operation-body>";
+
+var EMPTY_PROGRAM_INNER =
  '<tj-program-name>Unnamed</tj-program-name>' +
  '<tj-section id="values" style="display:none">' +
  '<tj-section-name>Values</tj-section-name>' + 
@@ -32,7 +42,6 @@ var EMPTY_PROGRAM =
  '</tj-section>';
  
 
-
 function autoresize(ta) {
   ta.style.height = 'auto';
   ta.style.height = ta.scrollHeight+'px';
@@ -40,19 +49,14 @@ function autoresize(ta) {
   window.scrollTo(window.scrollLeft,(ta.scrollTop + ta.scrollHeight));
 }
 
-
 function addClass(name) {
   if (!name) {
     return;
   }
-
   var classesBlock = document.getElementById("classes").querySelector("tj-section-body");
   var classElement = classesBlock.firstElementChild;
   var newElement = document.createElement("tj-class");
-  newElement.innerHTML = "<tj-class-name></tj-class-name><tj-class-body><tj-operation>" +
-      "<tj-operation-signature>constructor()</tj-operation-signature>" +
-      "<tj-operation-body></tj-operation-body>"+
-      "</tj-operation></tj-class-body>";
+  newElement.innerHTML = EMPTY_CLASS_INNER;
   newElement.querySelector("tj-class-name").textContent = name;
   insertArtifact(classesBlock, newElement);
   select(newElement);
@@ -66,8 +70,7 @@ function addFunction(name, container) {
     name += "()";
   }
   var newElement = document.createElement("tj-operation");
-  newElement.innerHTML = "<tj-operation-signature></tj-operation-signature>" +
-    "<tj-operation-body></tj-operation-body>";
+  newElement.innerHTML = EMPTY_OPERATION_INNER;
   newElement.querySelector("tj-operation-signature").textContent = name;
   insertArtifact(container, newElement);
   select(newElement);
@@ -193,6 +196,7 @@ function handleJsaction(name, element, event) {
         options.push(label);
       }
       programList = newList;
+      options.sort();
       modal.choice("Open program", options, function(label) {
         if (label != null) {
           var cut = label.lastIndexOf('(');
@@ -267,7 +271,7 @@ function load() {
    selectedClass = null;
 
    if (currentId == null) {
-     programElement.innerHTML = EMPTY_PROGRAM;
+     programElement.innerHTML = EMPTY_PROGRAM_INNER;
      var newName = "Unnamed";
      var index = 2;
      var conflict;
