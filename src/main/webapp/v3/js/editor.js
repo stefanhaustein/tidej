@@ -151,6 +151,13 @@ function findMethod(className, signature) {
 
 function handleJsaction(name, element, event) {
   switch(name) {
+    case 'about':
+      modal.alert(
+        '<p><b>Tidej</b>: Tiny IDE for Javascript</p>' +
+        '<p>For more information, visit <a href="http://tidej.net"  target="_blank">tidej.net</a>.</p>' +
+        '<p>(C) 2016 Stefan Haustein, Z&uuml;rich, Switzerland.</p>');
+      break;
+
     case 'add-class':
       modal.prompt("Class name?", "", addClass);
       break;
@@ -164,24 +171,36 @@ function handleJsaction(name, element, event) {
 
     case 'load':
       var id = element.getAttribute("data-id");
-      var secret = element.getAttribute("data-secret");
-      window.location.hash = "#id=" + id + (secret == null ? '' : (';secret=' + secret));
+      window.location.hash = "#id=" + id;
 //      load();
       break;
 
-    case 'load-menu':
-      var menu = document.getElementById("load-menu");
-      menu.innerHTML = "<div jsaction='menu' data-id='example-menu'>Examples</div>";
-      for (var key in programList) {
-        var entry = programList[key];
-        var entryElement = document.createElement("div");
-        entryElement.setAttribute("jsaction", "load");
-        entryElement.setAttribute("data-id", entry['id']);
-        entryElement.setAttribute("data-secret", entry['secret']);
-        entryElement.textContent = key;
-        menu.appendChild(entryElement);
+    case 'load-dialog':
+      var newList = {};
+      var options = [];
+      for (var id in programList) {
+        var entry = programList[id];
+        if (entry.id) {
+          entry.name = id;
+          id = entry.id;
+          entry.id = null;
+        }
+        if (id == entry.name || entry.secret == null) {
+          continue;
+        }
+        newList[id] = entry;
+        var label = entry.name + " (" + id + ")";
+        options.push(label);
       }
-      openMenu("load-menu");
+      programList = newList;
+      modal.choice("Open program", options, function(label) {
+        if (label != null) {
+          var cut = label.lastIndexOf('(');
+          var id = label.substring(cut + 1, label.length - 1);
+          var entry = programList[id];
+          window.location.hash = "#id=" + id + ';secret=' + entry.secret;
+        }
+      });
       break;
 
     case 'menu':
@@ -216,7 +235,6 @@ function handleJsaction(name, element, event) {
     case 'rename':
       modal.prompt("New Program Name?", currentProgramName, function(newName) {
         if (newName && newName != currentProgramName) {
-          delete programList[currentProgramName];
           setName(newName);
           save();
         }
@@ -252,9 +270,17 @@ function load() {
      programElement.innerHTML = EMPTY_PROGRAM;
      var newName = "Unnamed";
      var index = 2;
-     while (programList[newName]) {
-       newName = "Unnamed " + index++;
-     }
+     var conflict;
+     do {
+       conflict = false;
+       for (var id in programList) {
+         if (programList[id].name == newName) {
+           conflict = true;
+           newName = "Unnamed " + index++;
+           break;
+         }
+       }
+     } while (conflict);
      savedContent = programElement.innerHTML;
      setName(newName);
    } else {
@@ -389,7 +415,7 @@ function save(callback) {
 
       location.hash = "#id=" + currentId + ";secret=" + currentSecret;
 
-      programList[currentProgramName] = {id: currentId, secret: currentSecret};
+      programList[currentId] = {name: currentProgramName, secret: currentSecret};
       localStorage.setItem('programList', JSON.stringify(programList));
       if (callback != null) {
         callback();
