@@ -13,6 +13,15 @@ var programListText = localStorage.getItem('programList');
 var programList = programListText == null ? {} : JSON.parse(programListText);
 var savedContent = null;
 
+var EXAMPLES = [
+  "Example: Hello World (11cd0zlkfh33e)",
+  "Example: Mole Clicker (17pddy4qh22rc)",
+  "Example: Boing (1jq99fabuugyc)",
+  "Example: Planet Simulation (1pgjxn6691lad)",
+  "Example: 15 Puzzle (1t6k9w5b09wh0)",
+  null
+];
+
 var EMPTY_CLASS_INNER =
   "<tj-class-name></tj-class-name><tj-class-body><tj-operation>" +
   "<tj-operation-signature>constructor()</tj-operation-signature>" +
@@ -156,8 +165,9 @@ function handleJsaction(name, element, event) {
   switch(name) {
     case 'about':
       modal.alert(
-        '<p><b>Tidej</b>: Tiny IDE for Javascript</p>' +
-        '<p>For more information, visit <a href="http://tidej.net"  target="_blank">tidej.net</a>.</p>' +
+        '<h3>Tidej</h3>' +
+        '<p>Tiny IDE for Javascript; ' +
+        'for more information, visit <a href="http://tidej.net"  target="_blank">tidej.net</a>.</p>' +
         '<p>(C) 2016 Stefan Haustein, Z&uuml;rich, Switzerland.</p>');
       break;
 
@@ -197,12 +207,17 @@ function handleJsaction(name, element, event) {
       }
       programList = newList;
       options.sort();
-      modal.choice("Open program", options, function(label) {
+
+      modal.choice("Open program", EXAMPLES.concat(options), function(label) {
         if (label != null) {
           var cut = label.lastIndexOf('(');
           var id = label.substring(cut + 1, label.length - 1);
           var entry = programList[id];
-          window.location.hash = "#id=" + id + ';secret=' + entry.secret;
+          var hash = "#id=" + id;
+          if (entry) {
+            hash += ';secret=' + entry.secret
+          }
+          window.location.hash = hash;
         }
       });
       break;
@@ -378,7 +393,7 @@ function openContextMenu(element) {
           if (artifact == selectedElement) {
             select(null);
           }
-          var body = artifact.querySelector("block-body");
+          var body = artifact.querySelector("tj-block-body");
           body.innerHTML = "";
           if (name != "Program body") {
             artifact.style.display = "none";

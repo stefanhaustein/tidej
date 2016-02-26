@@ -108,17 +108,21 @@ modal.prompt = function(html, value, callback) {
 modal.choice = function(html, options, callback) {
   var optionsHtml = "";
   for (var i = 0; i < options.length; i++) {
-    optionsHtml += "<option>" + modal.htmlEscape(options[i]) + "</option>";
+    if (options[i] == null) {
+      optionsHtml += '<option selected value="">(select)</option>'
+    } else {
+      optionsHtml += "<option>" + modal.htmlEscape(options[i]) + "</option>";
+    }
   }
 
-  modal.show('<p>' + html + '</p><p><select>' + optionsHtml + '</select>' +
+  modal.show('<p>' + html + '</p><p><select style="width:100%">' + optionsHtml + '</select>' +
        '<p style="text-align:right"><button>Cancel</button><button>Ok</button></p>');
 
   var select = modal.dialog.querySelector("select");
   var buttons = modal.dialog.querySelectorAll("button");
   buttons[0].onclick = buttons[1].onclick = function() {
      modal.hide();
-     if (callback && this.textContent == "Ok") {
+     if (callback && this.textContent == "Ok" && select.value) {
        callback(select.value);
      }
   };
