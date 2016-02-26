@@ -107,11 +107,12 @@ modal.prompt = function(html, value, callback) {
 
 modal.choice = function(html, options, callback) {
   var optionsHtml = "";
-  for (var i = 0; i < options.length; i++) {
+  for (var i = 0; i < options.length; i += 2) {
     if (options[i] == null) {
       optionsHtml += '<option selected value="">(select)</option>'
     } else {
-      optionsHtml += "<option>" + modal.htmlEscape(options[i]) + "</option>";
+      optionsHtml += '"<option value="' + modal.htmlEscape(options[i+1]) + '">' +
+        modal.htmlEscape(options[i]) + '</option>';
     }
   }
 

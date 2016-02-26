@@ -13,14 +13,6 @@ var programListText = localStorage.getItem('programList');
 var programList = programListText == null ? {} : JSON.parse(programListText);
 var savedContent = null;
 
-var EXAMPLES = [
-  "Example: Hello World (11cd0zlkfh33e)",
-  "Example: Mole Clicker (17pddy4qh22rc)",
-  "Example: Boing (1jq99fabuugyc)",
-  "Example: Planet Simulation (1pgjxn6691lad)",
-  "Example: 15 Puzzle (1t6k9w5b09wh0)",
-  null
-];
 
 var EMPTY_CLASS_INNER =
   "<tj-class-name></tj-class-name><tj-class-body><tj-operation>" +
@@ -202,16 +194,23 @@ function handleJsaction(name, element, event) {
           continue;
         }
         newList[id] = entry;
-        var label = entry.name + " (" + id + ")";
-        options.push(label);
+
+        var name = entry.name + " (" + id + ")";
+
+        var targetIndex = options.length;
+        for (var i = 0; i < options.length; i += 2) {
+          if (options[i] > name) {
+            targetIndex = i;
+            break;
+          }
+        }
+        options.splice(targetIndex, 0, name, id)
       }
       programList = newList;
-      options.sort();
+      //options.sort();
 
-      modal.choice("Open program", EXAMPLES.concat(options), function(label) {
-        if (label != null) {
-          var cut = label.lastIndexOf('(');
-          var id = label.substring(cut + 1, label.length - 1);
+      modal.choice("Open program", options, function(id) {
+        if (id != null) {
           var entry = programList[id];
           var hash = "#id=" + id;
           if (entry) {
