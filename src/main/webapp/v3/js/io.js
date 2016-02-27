@@ -16,7 +16,10 @@ io.parseParams = function(s) {
 io.loadContent = function(params, callback) {
   var path = "/storage?cache-poison=" + Math.random();
   for (var key in params) {
-    path += "&" + key + "=" + encodeURIComponent(params[key]);
+    var value = params[key];
+    if (value != null) {
+      path += "&" + key + "=" + encodeURIComponent(value);
+    }
   }
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.open("GET", path, true);
@@ -41,7 +44,10 @@ io.saveContent = function(content, params, callback) {
   var xmlhttp = new XMLHttpRequest();
   var path = "/storage?tag=dev";
   for (var key in params) {
-    path += "&" + key + "=" + encodeURIComponent(params[key]);
+    var value = params[key];
+    if (value != null) {
+      path += "&" + key + "=" + encodeURIComponent(value);
+    }
   }
   var self = this;
   xmlhttp.open("POST", path, true);

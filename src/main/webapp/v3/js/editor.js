@@ -174,6 +174,61 @@ function handleJsaction(name, element, event) {
       });
       break;
 
+    case 'add-method':
+      modal.prompt("Method name or signature?", "", function(name) {
+        var container = currentAnchorElement.parentNode.querySelector("tj-class-body");
+        addFunction(name, container);
+      });
+      break;
+
+    case 'change-signature':
+    case 'rename-class':
+      var oldName = currentAnchorElement.textContent;
+      modal.prompt(name == "rename-class" ? "New name: " : "New signature:", oldName, function(newName) {
+            if (newName != oldName) {
+              currentAnchorElement.textContent = newName;
+              var artifact = currentAnchorElement.parentNode;
+              var container = artifact.parentNode;
+              container.removeChild(artifact);
+              insertArtifact(container, artifact);
+            }
+          });
+      break;
+
+    case 'clear-block':
+      var blockName = currentAnchorElement.textContent;
+      modal.confirm("Clear " + modal.htmlEscape(blockName) + "?", function(ok) {
+        if (ok) {
+          var artifact = currentAnchorElement.parentNode;
+          if (artifact == selectedElement) {
+            select(null);
+          }
+          var body = artifact.querySelector("tj-block-body");
+          body.innerHTML = "";
+          if (blockName != "Program body") {
+            artifact.style.display = "none";
+          }
+          cleanup();
+        }
+      });
+      break;
+
+    case 'delete-artifact':
+      var artifactName = currentAnchorElement.textContent;
+      modal.confirm("Delete " + modal.htmlEscape(artifactName) + "?", function(ok) {
+        if (ok) {
+          var artifact = currentAnchorElement.parentNode;
+          if (artifact == selectedElement) {
+            select(null);
+          }
+          var container = artifact.parentNode;
+          container.removeChild(artifact);
+          cleanup();
+        }
+      });
+      break;
+
+
     case 'load':
       var id = element.getAttribute("data-id");
       window.location.hash = "#id=" + id;
@@ -209,7 +264,7 @@ function handleJsaction(name, element, event) {
       programList = newList;
       //options.sort();
 
-      modal.choice("Open program", options, function(id) {
+      modal.choice("Load program", options, function(id) {
         if (id != null) {
           var entry = programList[id];
           var hash = "#id=" + id;
@@ -228,6 +283,17 @@ function handleJsaction(name, element, event) {
     case 'constants':
     case 'globals':
       select(document.getElementById(name));
+      break;
+
+    case 'delete':
+      modal.confirm('Delete program "' + modal.htmlEscape(currentProgramName) + '"?', function(ok) {
+        if (ok) {
+          delete programList[currentId];
+          saveProgramList();
+          localStorage.setItem("lastHash", "");
+          window.location.hash = "#";
+        }
+      });
       break;
 
     case "show-collaboration-url":
@@ -261,7 +327,7 @@ function handleJsaction(name, element, event) {
 
     case 'run':
       save(function() {
-         window.location = "run.html#id=" + currentId + (currentSecret == null ? "" : (";secret=" + currentSecret));
+        window.location = "run.html#id=" + currentId + (currentSecret == null ? "" : (";secret=" + currentSecret));
       });
       break;
   }  
@@ -287,18 +353,6 @@ function load() {
    if (currentId == null) {
      programElement.innerHTML = EMPTY_PROGRAM_INNER;
      var newName = "Unnamed";
-     var index = 2;
-     var conflict;
-     do {
-       conflict = false;
-       for (var id in programList) {
-         if (programList[id].name == newName) {
-           conflict = true;
-           newName = "Unnamed " + index++;
-           break;
-         }
-       }
-     } while (conflict);
      savedContent = programElement.innerHTML;
      setName(newName);
    } else {
@@ -338,72 +392,27 @@ function insertArtifact(container, artifact) {
   container.insertBefore(artifact, child);
 }
 
+function showContextMenu(anchorElement, menuId) {
+  closeMenu();
+  currentAnchorElement = anchorElement;
+  currentMenu = document.getElementById(menuId);
+  var pos = modal.getDocumentPosition(anchorElement);
+  currentMenu.style.right = pos.x + "px";
+  currentMenu.style.top = pos.y + anchorElement.offsetHeight / 2 + "px";
+  currentMenu.style.position = "absolute";
+  currentMenu.style.display = "block";
+}
+
 function openContextMenu(element) {
   var elementName = element.localName;
-  var name = element.textContent;
-
-  var options;
   if (elementName == "tj-operation-signature") {
-    if (isConstructor(element.parentNode)) {
-      options = ["Change Signature"];
-    } else {
-      options = ["Change Signature", "Delete"];
-    }
+    showContextMenu(element, isConstructor(element.parentNode) ?
+       "constructor-context-menu" : "operation-context-menu");
   } else if (elementName == "tj-class-name") {
-    options = ["Add Method", "Rename", "Delete"];
+    showContextMenu(element, "class-context-menu");
   } else if (elementName == "tj-block-name") {
-    options = ["Clear"];
-  } else {
-    return;
+    showContextMenu(element, "block-context-menu");
   }
-
-  modal.showMenu(element, "menu", options, function(result) {
-    if (result == "Rename" || result == "Change Signature") {
-      modal.prompt(result == "Rename" ? "New name: " : "New signature:", name, function(newName) {
-        if (newName != name) {
-          element.textContent = newName;
-          var artifact = element.parentNode;
-          var container = artifact.parentNode;
-          container.removeChild(artifact);
-          insertArtifact(container, artifact);
-        }
-      });
-    } else if (result == "Delete") {
-      modal.confirm("Delete " + name + "?", function(ok) {
-        if (ok) {
-          var artifact = element.parentNode;
-          if (artifact == selectedElement) {
-            select(null);
-          }
-          var container = artifact.parentNode;
-          container.removeChild(artifact);
-          cleanup();
-        }
-      });
-    } else if (result == "Add Method") {
-      modal.prompt("Method name or signature?", "", function(name) {
-        var container = element.parentNode.querySelector("tj-class-body");
-        addFunction(name, container);
-      });
-    } else if (result == "Clear") {
-      modal.confirm("Clear " + name + "?", function(ok) {
-        if (ok) {
-          var artifact = element.parentNode;
-          if (artifact == selectedElement) {
-            select(null);
-          }
-          var body = artifact.querySelector("tj-block-body");
-          body.innerHTML = "";
-          if (name != "Program body") {
-            artifact.style.display = "none";
-          }
-          cleanup();
-        }
-      });
-    } else {
-      window.console.log("unhandled menu selection: ", result);
-    }
-  });
 }
 
 function openMenu(id) {
@@ -413,6 +422,7 @@ function openMenu(id) {
 }
 
 
+
 function save(callback) {
   var selected = selectedElement;
   select(null);  // detaches editor
@@ -420,7 +430,7 @@ function save(callback) {
   var program = document.body.querySelector('tj-program').innerHTML;
   select(selectedElement);
 
-  if (program == savedContent) {
+  if (program == savedContent && currentId != null) {
     callback();
   } else {
     modal.showDeferred("Saving...");
@@ -434,12 +444,16 @@ function save(callback) {
       location.hash = "#id=" + currentId + ";secret=" + currentSecret;
 
       programList[currentId] = {name: currentProgramName, secret: currentSecret};
-      localStorage.setItem('programList', JSON.stringify(programList));
+      saveProgramList();
       if (callback != null) {
         callback();
       }
     });
   }
+}
+
+function saveProgramList() {
+  localStorage.setItem('programList', JSON.stringify(programList));
 }
 
 
@@ -579,8 +593,13 @@ function handleClick(event) {
 
 function setName(name) {
   currentProgramName = name;
-  document.title = "TideJ" + (name.startsWith("Unnamed") ? "" : (": " + name));
-  document.getElementById('title').textContent = name;
+  var title = name;
+  var unnamed = name == "Unnamed";
+  if (currentSecret == null && !unnamed) {
+    title += " (readonly)";
+  }
+  document.title = unnamed ? "Tidej" : ("Tidej: " + title);
+  document.getElementById('title').textContent = (unnamed ? "Tidej" : title);
   var programNameElement = document.body.querySelector("tj-program-name");
   if (programNameElement == null) {
     programElement = document.body.querySelector("tj-program");

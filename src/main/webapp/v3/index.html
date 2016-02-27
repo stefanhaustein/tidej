@@ -47,10 +47,15 @@
 <div id="main-menu" class="menu" style="left:0">
   <div jsaction="about">About Tidej</div>
   <div jsaction="menu" data-id="example-menu">Examples&hellip;</div>
-  <div jsaction="new-program">New Program</div>
-  <div jsaction="load-dialog">Load Program</div>
-  <div jsaction="rename">Rename Program</div>
+  <div jsaction="menu" data-id="program-menu">Program&hellip;</div>
   <div jsaction="menu" data-id="add-menu">Add&hellip;</div>
+</div>
+
+<div id="program-menu" class="menu"  style="border-left: 20px solid grey; left:0">
+    <div jsaction="new-program">New Program</div>
+    <div jsaction="load-dialog">Load Program</div>
+    <div jsaction="rename">Rename Program</div>
+    <div jsaction="delete">Delete Program</div>
 </div>
 
 <div id="share-menu" class="menu" style="right:0">
@@ -74,6 +79,24 @@
   <div jsaction="add-class">Class</div>
 </div>
 
+<div id="operation-context-menu" class="menu">
+    <div jsaction="change-signature">Change signature</div>
+    <div jsaction="delete-artifact">Delete</div>
+</div>
+
+<div id="constructor-context-menu" class="menu">
+    <div jsaction="change-signature">Change signature</div>
+</div>
+
+<div id="class-context-menu" class="menu">
+  <div jsaction="rename-class">Rename</div>
+  <div jsaction="add-method">Add Method</div>
+  <div jsaction="delete-artifact">Delete</div>
+</div>
+
+<div id="block-context-menu" class="menu">
+  <div jsaction="clear-block">Clear</div>
+</div>
 
 <tj-program id="program">
 </tj-program>
