@@ -80,7 +80,9 @@ tidejRunner.showBackButton = function() {
 }
 
 tidejRunner.params = io.parseParams(window.location.hash.substr(1));
-io.loadContent({id: tidejRunner.params['id']}, tidejRunner.runProgram);
+io.loadContent({
+    id: tidejRunner.params['id'],
+    tag: tidejRunner.params['secret'] ? 'dev' : 'pub'}, tidejRunner.runProgram);
 tidejRunner.showBackButton();
 window.onerror = tidejRunner.handleError;
 </script>

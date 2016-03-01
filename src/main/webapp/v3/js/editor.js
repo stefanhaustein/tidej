@@ -13,6 +13,11 @@ var programListText = localStorage.getItem('programList');
 var programList = programListText == null ? {} : JSON.parse(programListText);
 var savedContent = null;
 
+var SaveOptions = {
+  FORCE: 1,
+  PUBLISH: 2
+};
+
 
 var EMPTY_CLASS_INNER =
   "<tj-class-name></tj-class-name><tj-class-body><tj-operation>" +
@@ -27,7 +32,7 @@ var EMPTY_OPERATION_INNER =
 var EMPTY_PROGRAM_INNER =
  '<tj-program-name>Unnamed</tj-program-name>' +
  '<tj-section id="values" style="display:none">' +
- '<tj-section-name>Values</tj-section-name>' + 
+// '<tj-section-name>Values</tj-section-name>' +
  '<tj-section-body>' +
  '<tj-block id="constants" style="display:none"><tj-block-name>Constants</tj-block-name><tj-block-body></tj-block>' +
  '<tj-block id="globals" style="display:none"><tj-block-name>Global Variables</tj-block-name><tj-block-body></tj-block>' +
@@ -41,14 +46,7 @@ var EMPTY_PROGRAM_INNER =
  '<tj-block id="main"><tj-block-name>Program body</tj-block-name><tj-block-body></tj-block-body>' +
  '</tj-section-body>' +
  '</tj-section>';
- 
 
-function autoresize(ta) {
-  ta.style.height = 'auto';
-  ta.style.height = ta.scrollHeight+'px';
-  ta.scrollTop = ta.scrollHeight;
-  window.scrollTo(window.scrollLeft,(ta.scrollTop + ta.scrollHeight));
-}
 
 function addClass(name) {
   if (!name) {
@@ -116,6 +114,12 @@ function cleanup() {
 function closeMenu() {
   if (currentMenu) {
     currentMenu.style.display = "none";
+
+    var parentMenuId = currentMenu.getAttribute("data-parent-menu");
+    if (parentMenuId) {
+      document.getElementById(parentMenuId).style.display = "none";
+    }
+
     currentMenu = null;
   }
 }
@@ -231,8 +235,7 @@ function handleJsaction(name, element, event) {
 
     case 'load':
       var id = element.getAttribute("data-id");
-      window.location.hash = "#id=" + id;
-//      load();
+      load("#id=" + id);
       break;
 
     case 'load-dialog':
@@ -271,7 +274,7 @@ function handleJsaction(name, element, event) {
           if (entry) {
             hash += ';secret=' + entry.secret
           }
-          window.location.hash = hash;
+          load(hash);
         }
       });
       break;
@@ -289,21 +292,22 @@ function handleJsaction(name, element, event) {
       modal.confirm('Delete program "' + modal.htmlEscape(currentProgramName) + '"?', function(ok) {
         if (ok) {
           delete programList[currentId];
-          saveProgramList();
+          currentId = null;
+          updateProgramList();
           localStorage.setItem("lastHash", "");
-          window.location.hash = "#";
+          load("#");
         }
       });
       break;
 
     case "show-collaboration-url":
-      save(function() {
+      save(SaveOptions.FORCE, function() {
         modal.prompt("<b>DANGER</b> &mdash; anybody with this URL can edit this program:", window.location.href);
       });
       break;
 
     case "show-run-url":
-      save(function() {
+      save(SaveOptions.PUBLISH, function() {
         var url = window.location.href;
         var cut = url.lastIndexOf('/');
         var runUrl = url.substr(0, cut + 1) + "run.html#id=" + currentId;
@@ -313,28 +317,37 @@ function handleJsaction(name, element, event) {
 
     case 'new-program':
       localStorage.setItem("lastHash", "");
-      window.location.hash = "#";
+      load("#");
       break;
 
     case 'rename':
       modal.prompt("New Program Name?", currentProgramName, function(newName) {
         if (newName && newName != currentProgramName) {
           setName(newName);
-          save();
+          save(0);
         }
       });
       break;
 
     case 'run':
-      save(function() {
-        window.location = "run.html#id=" + currentId + (currentSecret == null ? "" : (";secret=" + currentSecret));
-      });
+      if (currentId == null && document.getElementById("program").innerHTML == savedContent) {
+        modal.alert("Program is empty.");
+      } else {
+        save(0, function() {
+          window.location = "run.html#id=" + currentId + (currentSecret == null ? "" : (";secret=" + currentSecret));
+        });
+      }
       break;
   }  
 }
 
-function load() {
-   var hash = window.location.hash;
+function load(hash) {
+   if (hash) {
+     // This will trigger a url change event, which will call load...
+     window.location.replace(hash);
+     return;
+   }
+   hash = window.location.hash;
    if (hash.length <= 1 && localStorage.getItem("lastHash")) {
      hash = localStorage.getItem("lastHash");
    } else {
@@ -357,7 +370,7 @@ function load() {
      setName(newName);
    } else {
      modal.showDeferred("Loading...");
-     io.loadContent({id: currentId}, function(programXml) {
+     io.loadContent({id: currentId, tag: 'dev'}, function(programXml) {
        modal.hide();
        programElement.innerHTML = programXml;
        savedContent = programElement.innerHTML;
@@ -419,32 +432,46 @@ function openMenu(id) {
   closeMenu();
   currentMenu = document.getElementById(id);
   currentMenu.style.display = "block";
+
+  var parentMenuId = currentMenu.getAttribute("data-parent-menu");
+  if (parentMenuId) {
+    var parentMenu = document.getElementById(parentMenuId);
+    parentMenu.style.display = "block";
+  }
 }
 
-
-
-function save(callback) {
+function save(options, callback) {
+  var force = (options & SaveOptions.FORCE) != 0;
+  var publish = (options & SaveOptions.PUBLISH) != 0;
   var selected = selectedElement;
   select(null);  // detaches editor
 
   var program = document.body.querySelector('tj-program').innerHTML;
   select(selectedElement);
 
-  if (program == savedContent && currentId != null) {
+  if (!publish && program == savedContent && currentId != null && (currentSecret != null || !force)) {
     callback();
   } else {
     modal.showDeferred("Saving...");
-    io.saveContent(program, {id: currentId, secret: currentSecret, name: currentProgramName}, function(params) {
-
+    if (currentId != null && currentSecret == null) {
+      setName(currentProgramName +  " (fork)");
+      program = document.body.querySelector('tj-program').innerHTML;
+    }
+    io.saveContent(program, {
+        id: currentId,
+        secret: currentSecret,
+        name: currentProgramName,
+        tag: publish ? "pub" : "dev"}, function(params) {
       modal.hide();
-      savedContent = program;
+      if (!publish) {
+        savedContent = program;
+      }
       currentId = params['id'];
       currentSecret = params['secret'];
 
-      location.hash = "#id=" + currentId + ";secret=" + currentSecret;
+      location.replace("#id=" + currentId + ";secret=" + currentSecret);
 
-      programList[currentId] = {name: currentProgramName, secret: currentSecret};
-      saveProgramList();
+      updateProgramList();
       if (callback != null) {
         callback();
       }
@@ -452,7 +479,10 @@ function save(callback) {
   }
 }
 
-function saveProgramList() {
+function updateProgramList() {
+  if (currentSecret != null && currentId != null) {
+    programList[currentId] = {name: currentProgramName, secret: currentSecret};
+  }
   localStorage.setItem('programList', JSON.stringify(programList));
 }
 
@@ -512,17 +542,14 @@ function select(element) {
       selectedOperation = element;
 
       var body = selectedOperation.querySelector('tj-operation-body,tj-block-body');
-      //autoresize(textarea);
-
-      //currentEditor = CodeMirror.fromTextArea(textarea, );
 
       var content = body.textContent;
-      body.innerHTML = "";
+      body.innerHTML = '';
       currentEditor = CodeMirror(function(element) {
         body.appendChild(element);
-      }, {value: content, mode: "javascript", lineWrapping: true});
+      }, {value: content, mode: 'javascript', lineWrapping: true});
 
-      currentEditor.on("change", function() {
+      currentEditor.on('change', function() {
         clearTimeout(lintTimer);
         lintTimer = setTimeout(updateHints, 500);
         if (currentError != null && currentError.element == selectedElement) {
@@ -536,7 +563,7 @@ function select(element) {
 }
 
 function showError(params) {
-  var artifact = params["artifact"];
+  var artifact = params['artifact'];
   var type = artifact[0];
   var name = artifact.substr(2);
   var element;
@@ -553,7 +580,7 @@ function showError(params) {
     break;
   }
   if (element == null) {
-    window.console.log("artifact not found: " + artifact);
+    window.console.log('artifact not found: ' + artifact);
     currentError = null;
   } else {
     select(element);
@@ -568,8 +595,8 @@ function handleClick(event) {
 
   if (element != null && (element.localName == 'tj-operation-signature' ||
       element.localName == 'tj-class-name' || element.localName == 'tj-block-name')) {
-    window.console.log("cx: ", event.clientX, " bcr.l: ", element.getBoundingClientRect().left,
-      " cl: ", element.clientLeft, " cw: ", element.clientWidth);
+    window.console.log('cx: ', event.clientX, ' bcr.l: ', element.getBoundingClientRect().left,
+      ' cl: ', element.clientLeft, ' cw: ', element.clientWidth);
     event.stopPropagation();
     event.preventDefault();
     if (event.clientX - element.getBoundingClientRect().left - element.clientLeft > element.clientWidth - 40) {
@@ -579,7 +606,7 @@ function handleClick(event) {
     }
   } else {
     while (element != null) {
-      var jsaction = element.getAttribute && element.getAttribute("jsaction");
+      var jsaction = element.getAttribute && element.getAttribute('jsaction');
       if (jsaction) {
         event.stopPropagation();
         event.preventDefault();
@@ -592,21 +619,21 @@ function handleClick(event) {
 };
 
 function setName(name) {
+  var changed = name != currentProgramName;
   currentProgramName = name;
   var title = name;
-  var unnamed = name == "Unnamed";
-  if (currentSecret == null && !unnamed) {
-    title += " (readonly)";
-  }
-  document.title = unnamed ? "Tidej" : ("Tidej: " + title);
-  document.getElementById('title').textContent = (unnamed ? "Tidej" : title);
-  var programNameElement = document.body.querySelector("tj-program-name");
+  var unnamed = name == 'Unnamed';
+  document.title = unnamed ? 'Tidej' : ('Tidej: ' + title);
+  document.getElementById('title').innerHTML = (unnamed ? 'Tidej' :
+    (modal.htmlEscape(title) + (currentSecret == null ? ' <i class="fa fa-lock"></i>' : '')));
+  var programNameElement = document.body.querySelector('tj-program-name');
   if (programNameElement == null) {
-    programElement = document.body.querySelector("tj-program");
-    programNameElement = document.createElement("tj-program-name");
+    programElement = document.body.querySelector('tj-program');
+    programNameElement = document.createElement('tj-program-name');
     programElement.insertBefore(programNameElement, programElement.firstChild);
   }
   programNameElement.textContent = name;
+  updateProgramList();
 }
 
 // Event handlers
@@ -622,7 +649,7 @@ document.body.oninput = function(event) {
 };*/
 
 document.ontouchstart = function(event) {
-  // window.console.log("touch start", event);
+  // window.console.log('touch start', event);
   if (event.touches.length == 1) {
     touchStartElement = event.target;
     touchStartX = event.touches[0].clientX;
@@ -635,7 +662,7 @@ document.ontouchstart = function(event) {
 }
 
 document.ontouchend = function(event) {
-  // window.console.log("touch end", event);
+  // window.console.log('touch end', event);
   var dt = Date.now() - touchStartTime;
   if (event.changedTouches.length >= 1 && dt < 500) {
     var t0 = event.changedTouches[0];
@@ -647,10 +674,10 @@ document.ontouchend = function(event) {
       event.clientY = touchStartY;
       handleClick(event);
     } else {
-    //  window.alert("failed click; d2: " + d2);
+    //  window.alert('failed click; d2: ' + d2);
     }
   } else {
-    // window.alert("failed click; dt: " + dt + " ctl: " + event.changedTouches.length);
+    // window.alert('failed click; dt: ' + dt + ' ctl: ' + event.changedTouches.length);
   }
   touchStartElement = null;
 }
@@ -683,27 +710,28 @@ function updateHints() {
       }
       var reason = err.reason;
       if (currentError && currentError != err && reason &&
-        reason.startsWith("Unrecoverable syntax error")) {
+        reason.startsWith('Unrecoverable syntax error')) {
         continue;
       }
 
-      var msg = document.createElement("div");
-      var icon = msg.appendChild(document.createElement("span"));
-      icon.innerHTML = "&nbsp;!&nbsp;"; // "&#215;";
-      icon.className = "lint-error-icon";
+      var msg = document.createElement('div');
+      var icon = msg.appendChild(document.createElement('span'));
+      icon.innerHTML = '&nbsp;!&nbsp;'; // '&#215;';
+      icon.className = 'lint-error-icon';
       msg.appendChild(document.createTextNode(reason));
-      msg.className = "lint-error";
+      msg.className = 'lint-error';
       widgets.push(editor.addLineWidget(err.line - 1, msg, {coverGutter: false, noHScroll: true}));
     }
   });
   var info = editor.getScrollInfo();
-  var after = editor.charCoords({line: editor.getCursor().line + 1, ch: 0}, "local").top;
+  var after = editor.charCoords({line: editor.getCursor().line + 1, ch: 0}, 'local').top;
   if (info.top + info.clientHeight < after)
     editor.scrollTo(null, after - info.clientHeight + 3);
 }
 
-
-window.onhashchange = load;
+window.onhashchange = function() {
+  load()
+};
 load();
 
 

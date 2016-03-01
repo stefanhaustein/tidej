@@ -42,11 +42,13 @@ io.loadContent = function(params, callback) {
 // Callback is called with the (potentially new) id and revision.
 io.saveContent = function(content, params, callback) {
   var xmlhttp = new XMLHttpRequest();
-  var path = "/storage?tag=dev";
+  var path = "/storage";
+  var separator = "?";
   for (var key in params) {
     var value = params[key];
     if (value != null) {
-      path += "&" + key + "=" + encodeURIComponent(value);
+      path += separator + key + "=" + encodeURIComponent(value);
+      separator = "&";
     }
   }
   var self = this;

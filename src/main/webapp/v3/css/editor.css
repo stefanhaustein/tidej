@@ -17,30 +17,57 @@ body {
   max-width: 800px;
 }
 
+#topbar {
+  position:fixed;
+  background-color:lightgreen;
+  top:0;
+  left:0;
+  width:100%;
+  height:55px;
+  z-index:10;
+}
+
+.menu-title {
+  background-color:lightgreen;
+  height:55px;
+  box-sizing: border-box;
+  position: fixed;
+  padding: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  z-index:15;
+}
+
 .menu-title:hover {
   background-color: darkgreen;
   color: white;
 }
 
-.menu-title {
-  float: left;
-  padding: 20px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
+.submenu,
 .menu {
   background-color: #fff;
   border: 1px solid lightgray;
   display:none;
-  width:200px;
-  top:55px;
   position:fixed;
   border-bottom: 0;
+  width: 216px;
+}
+
+.menu {
+  top:55px;
   z-index: 20;
 }
 
+.submenu {
+  top:75px;
+  left: 40px;
+  z-index: 40;
+}
 
+.submenu > div,
 .menu > div {
   background-color: white;
   border-bottom:1px solid lightgray;
@@ -48,6 +75,7 @@ body {
   cursor: pointer;
 }
 
+.submenu > div:hover,
 .menu > div:hover {
   background-color:gray;
   color:white;
