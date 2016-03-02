@@ -15,7 +15,8 @@ var savedContent = null;
 
 var SaveOptions = {
   FORCE: 1,
-  PUBLISH: 2
+  PUBLISH: 2,
+  BACKGROUND: 4
 };
 
 
@@ -342,7 +343,7 @@ function handleJsaction(name, element, event) {
 }
 
 function load(hash) {
-   if (hash) {
+   if (hash != null && ("" + hash).startsWith("#")) {
      // This will trigger a url change event, which will call load...
      window.location.replace(hash);
      return;
@@ -444,39 +445,54 @@ function save(options, callback) {
   var force = (options & SaveOptions.FORCE) != 0;
   var publish = (options & SaveOptions.PUBLISH) != 0;
   var selected = selectedElement;
+  var background = (options & SaveOptions.BACKGROUND) != 0;
   select(null);  // detaches editor
 
   var program = document.body.querySelector('tj-program').innerHTML;
-  select(selectedElement);
+  select(selected);
 
-  if (!publish && program == savedContent && currentId != null && (currentSecret != null || !force)) {
-    callback();
-  } else {
-    modal.showDeferred("Saving...");
-    if (currentId != null && currentSecret == null) {
-      setName(currentProgramName +  " (fork)");
-      program = document.body.querySelector('tj-program').innerHTML;
+  if (!publish && program == savedContent &&
+      (currentId != null || background) &&  // TODO(haustein): support id==null roundtrip instead.
+      (currentSecret != null || !force)) {
+    if (callback != null) {
+      callback();
     }
-    io.saveContent(program, {
-        id: currentId,
-        secret: currentSecret,
-        name: currentProgramName,
-        tag: publish ? "pub" : "dev"}, function(params) {
-      modal.hide();
-      if (!publish) {
-        savedContent = program;
-      }
-      currentId = params['id'];
-      currentSecret = params['secret'];
-
-      location.replace("#id=" + currentId + ";secret=" + currentSecret);
-
-      updateProgramList();
-      if (callback != null) {
-        callback();
-      }
-    });
+    return;
   }
+
+  var oldHash = window.location.hash;
+  if (!background) {
+    modal.showDeferred("Saving...");
+  }
+  if (currentId != null && currentSecret == null) {
+    setName(currentProgramName +  " (fork)");
+    program = document.body.querySelector('tj-program').innerHTML;
+  }
+  io.saveContent(program, {
+      id: currentId,
+      secret: currentSecret,
+      name: currentProgramName,
+      tag: publish ? "pub" : "dev"}, function(params) {
+    if (!background) {
+      modal.hide();
+    }
+    if (!publish) {
+      savedContent = program;
+    }
+    currentId = params['id'];
+    currentSecret = params['secret'];
+
+    // Nothing else loaded in the meantime?
+    if (window.location.hash == oldHash) {
+      window.onhashchange = null;
+      location.replace("#id=" + currentId + ";secret=" + currentSecret);
+      window.onhashchange = load;
+    }
+    updateProgramList();
+    if (callback != null) {
+      callback();
+    }
+  });
 }
 
 function updateProgramList() {
@@ -595,10 +611,9 @@ function handleClick(event) {
 
   if (element != null && (element.localName == 'tj-operation-signature' ||
       element.localName == 'tj-class-name' || element.localName == 'tj-block-name')) {
-    window.console.log('cx: ', event.clientX, ' bcr.l: ', element.getBoundingClientRect().left,
-      ' cl: ', element.clientLeft, ' cw: ', element.clientWidth);
     event.stopPropagation();
     event.preventDefault();
+    save(SaveOptions.BACKGROUND);
     if (event.clientX - element.getBoundingClientRect().left - element.clientLeft > element.clientWidth - 40) {
       openContextMenu(element);
     } else {
@@ -610,6 +625,7 @@ function handleClick(event) {
       if (jsaction) {
         event.stopPropagation();
         event.preventDefault();
+        save(SaveOptions.BACKGROUND);
         handleJsaction(jsaction, element, event);
         return;
       }
@@ -669,7 +685,7 @@ document.ontouchend = function(event) {
     var dx = t0.clientX - touchStartX;
     var dy = t0.clientY - touchStartY;
     var d2 = dx * dx + dy * dy;
-    if (d2 < 256) {
+    if (d2 < 4096) {
       event.clientX = touchStartX;
       event.clientY = touchStartY;
       handleClick(event);
@@ -729,9 +745,7 @@ function updateHints() {
     editor.scrollTo(null, after - info.clientHeight + 3);
 }
 
-window.onhashchange = function() {
-  load()
-};
+window.onhashchange = load;
 load();
 
 
