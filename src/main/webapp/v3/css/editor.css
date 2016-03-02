@@ -23,13 +23,14 @@ body {
   top:0;
   left:0;
   width:100%;
-  height:55px;
+  height:56px;
   z-index:10;
+  box-shadow: rgba(0, 0, 0, 0.258824) 0px 2px 5px 0px
 }
 
 .menu-title {
   background-color:lightgreen;
-  height:55px;
+  height:56px;
   box-sizing: border-box;
   position: fixed;
   padding: 18px;
