@@ -79,10 +79,30 @@ tidejRunner.showBackButton = function() {
   }
 }
 
+tidejRunner.program = null;
 tidejRunner.params = io.parseParams(window.location.hash.substr(1));
-io.loadContent({
-    id: tidejRunner.params['id'],
-    tag: tidejRunner.params['secret'] ? 'dev' : 'pub'}, tidejRunner.runProgram);
+tidejRunner.tryStorage = tidejRunner.params.secret == null;
+
+if (!tidejRunner.tryStorage) {
+  tidejRunner.lastSavedText = localStorage.getItem("lastSaved");
+  if (tidejRunner.lastSavedText != null) {
+    tidejRunner.lastSaved = JSON.parse(lastSavedText);
+    tidejRunner.tryStorage = tidejRunner.lastSaved.id == tidejRunner.params.id &&
+      (Date.now() - tidejRunner.lastSaved.timeStamp) < 10000;
+  }
+}
+
+if (tidejRunner.tryStorage) {
+  tidejRunner.program = localStorage.getItem("program-" + tidejRunner.params.id);
+}
+
+if (tidejRunner.program) {
+  tidejRunner.runProgram(tidejRunner.program);
+} else {
+  io.loadContent({
+      id: tidejRunner.params['id'],
+      tag: tidejRunner.params['secret'] ? 'dev' : 'pub'}, tidejRunner.runProgram);
+}
 tidejRunner.showBackButton();
 window.onerror = tidejRunner.handleError;
 </script>
