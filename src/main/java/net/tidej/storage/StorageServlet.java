@@ -44,15 +44,16 @@ public class StorageServlet extends HttpServlet {
 		  	filterList.add(filter);
 		  	filterList.add(revFilter);
 			filter = new Query.CompositeFilter(Query.CompositeFilterOperator.AND, filterList);
-		} else if (tag != null && !tag.trim().equals("")) {
-			Query.Filter tagFilter = new Query.FilterPredicate(FIELD_TAG, Query.FilterOperator.EQUAL, tag);
-			ArrayList<Query.Filter> filterList = new ArrayList<>();
-			filterList.add(filter);
-			filterList.add(tagFilter);
-			filter = new Query.CompositeFilter(Query.CompositeFilterOperator.AND, filterList);
 		} else {
-			query.addSort(FIELD_REV, Query.SortDirection.DESCENDING);
-		}
+            query.addSort(FIELD_REV, Query.SortDirection.DESCENDING);
+            if (tag != null && !tag.trim().equals("")) {
+                Query.Filter tagFilter = new Query.FilterPredicate(FIELD_TAG, Query.FilterOperator.EQUAL, tag);
+                ArrayList<Query.Filter> filterList = new ArrayList<>();
+                filterList.add(filter);
+                filterList.add(tagFilter);
+                filter = new Query.CompositeFilter(Query.CompositeFilterOperator.AND, filterList);
+            }
+        }
 		query.setFilter(filter);
 		Iterator<Entity> i = datastore.prepare(query).asIterator();
 		if (!i.hasNext()) {

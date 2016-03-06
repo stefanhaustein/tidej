@@ -1,11 +1,9 @@
 var selectedOperation = null;
 var selectedClass = null;
 var selectedElement = null;
-var currentMenu = null;
-var currentProgramName = "";
 
-var currentId;
-var currentSecret;
+var current = {};
+var currentMenu = null;
 var currentEditor = null;
 var currentError = null;
 
@@ -240,20 +238,9 @@ function handleJsaction(name, element, event) {
       break;
 
     case 'load-dialog':
-      var newList = {};
       var options = [];
       for (var id in programList) {
         var entry = programList[id];
-        if (entry.id) {
-          entry.name = id;
-          id = entry.id;
-          entry.id = null;
-        }
-        if (id == entry.name || entry.secret == null) {
-          continue;
-        }
-        newList[id] = entry;
-
         var name = entry.name + " (" + id + ")";
 
         var targetIndex = options.length;
@@ -265,8 +252,6 @@ function handleJsaction(name, element, event) {
         }
         options.splice(targetIndex, 0, name, id)
       }
-      programList = newList;
-      //options.sort();
 
       modal.choice("Load program", options, function(id) {
         if (id != null) {
@@ -290,11 +275,11 @@ function handleJsaction(name, element, event) {
       break;
 
     case 'delete':
-      modal.confirm('Delete program "' + modal.htmlEscape(currentProgramName) + '"?', function(ok) {
+      modal.confirm('Delete program "' + modal.htmlEscape(current.name) + '"?', function(ok) {
         if (ok) {
-          delete programList[currentId];
-          currentId = null;
-          updateProgramList();
+          delete programList[current.id];
+          current = {};
+          saveProgramList();
           localStorage.setItem("lastHash", "");
           load("#");
         }
@@ -311,7 +296,7 @@ function handleJsaction(name, element, event) {
       save(SaveOptions.PUBLISH, function() {
         var url = window.location.href;
         var cut = url.lastIndexOf('/');
-        var runUrl = url.substr(0, cut + 1) + "run.html#id=" + currentId;
+        var runUrl = url.substr(0, cut + 1) + "run.html#id=" + current.id;
         modal.prompt("Share this URL:", runUrl);
       });
       break;
@@ -322,8 +307,8 @@ function handleJsaction(name, element, event) {
       break;
 
     case 'rename':
-      modal.prompt("New Program Name?", currentProgramName, function(newName) {
-        if (newName && newName != currentProgramName) {
+      modal.prompt("New Program Name?", current.name, function(newName) {
+        if (newName && newName != current.name) {
           setName(newName);
           save(0);
         }
@@ -331,11 +316,12 @@ function handleJsaction(name, element, event) {
       break;
 
     case 'run':
-      if (currentId == null && document.getElementById("program").innerHTML == savedContent) {
+      if (current.id == null && document.getElementById("program").innerHTML == savedContent) {
         modal.alert("Program is empty.");
       } else {
         save(0, function() {
-          window.location = "run.html#id=" + currentId + (currentSecret == null ? "" : (";secret=" + currentSecret));
+          window.location = "run.html#id=" + current.id +
+              (current.secret == null ? "" : (";secret=" + current.secret));
         });
       }
       break;
@@ -356,27 +342,29 @@ function load(hash) {
    }
    var params = io.parseParams(hash.substr(1));
 
-   currentId = params['id'];
-   currentSecret = params['secret'];
+   current = {
+     id: params['id'],
+     secret: params['secret']
+   }
 
    var programElement = document.getElementById("program");
 
    selectedOperation = null;
    selectedClass = null;
 
-   if (currentId == null) {
+   if (current.id == null) {
      programElement.innerHTML = EMPTY_PROGRAM_INNER;
      var newName = "Unnamed";
      savedContent = programElement.innerHTML;
      setName(newName);
    } else {
      modal.showDeferred("Loading...");
-     io.loadContent({id: currentId, tag: 'dev'}, function(programXml) {
+     io.loadContent({id: current.id, tag: 'dev'}, function(programXml) {
        modal.hide();
        programElement.innerHTML = programXml;
        savedContent = programElement.innerHTML;
        var programNameElement = programElement.querySelector("tj-program-name");
-       setName(programNameElement == null ? "" + currentId : programNameElement.textContent);
+       setName(programNameElement == null ? "" + current.id : programNameElement.textContent);
 
        var errorString = localStorage.getItem("tidej.error");
        if (errorString && errorString != "null") {
@@ -452,8 +440,8 @@ function save(options, callback) {
   select(selected);
 
   if (!publish && program == savedContent &&
-      (currentId != null || background) &&  // TODO(haustein): support id==null roundtrip instead.
-      (currentSecret != null || !force)) {
+      (current.id != null || background) &&  // TODO(support id==null roundtrip instead.
+      (current.secret != null || !force)) {
     if (callback != null) {
       callback();
     }
@@ -464,14 +452,14 @@ function save(options, callback) {
   if (!background) {
     modal.showDeferred("Saving...");
   }
-  if (currentId != null && currentSecret == null) {
-    setName(currentProgramName +  " (fork)");
+  if (current.id != null && current.secret == null) {
+    setName(current.name +  " (fork)");
     program = document.body.querySelector('tj-program').innerHTML;
   }
   io.saveContent(program, {
-      id: currentId,
-      secret: currentSecret,
-      name: currentProgramName,
+      id: current.id,
+      secret: current.secret,
+      name: current.name,
       tag: publish ? "pub" : "dev"}, function(params) {
     if (!background) {
       modal.hide();
@@ -479,25 +467,25 @@ function save(options, callback) {
     if (!publish) {
       savedContent = program;
     }
-    currentId = params['id'];
-    currentSecret = params['secret'];
+    current.id = params['id'];
+    current.secret = params['secret'];
 
     // Nothing else loaded in the meantime?
     if (window.location.hash == oldHash) {
       window.onhashchange = null;
-      location.replace("#id=" + currentId + ";secret=" + currentSecret);
+      location.replace("#id=" + current.id + ";secret=" + current.secret);
       window.onhashchange = load;
     }
-    updateProgramList();
+    saveProgramList();
     if (callback != null) {
       callback();
     }
   });
 }
 
-function updateProgramList() {
-  if (currentSecret != null && currentId != null) {
-    programList[currentId] = {name: currentProgramName, secret: currentSecret};
+function saveProgramList() {
+  if (current.secret != null && current.id != null) {
+    programList[current.id] = current;
   }
   localStorage.setItem('programList', JSON.stringify(programList));
 }
@@ -510,6 +498,7 @@ function select(element) {
     var value = currentEditor.getValue();
     var body = selectedElement.querySelector("tj-operation-body,tj-block-body");
     body.textContent = value;
+
     currentEditor = null;
   }
   if (element == null) {
@@ -524,6 +513,13 @@ function select(element) {
     selectedElement = null;
     return;
   }
+
+  // If we select a method from a different class, select the class first.
+  if (element.parentNode.localName == 'tj-class-body' &&
+    element.parentNode.parentNode != selectedClass) {
+    select(element.parentNode.parentNode);
+  }
+
   if (element.style.display == "none") {
     element.style.display = "";
   }
@@ -613,7 +609,6 @@ function handleClick(event) {
       element.localName == 'tj-class-name' || element.localName == 'tj-block-name')) {
     event.stopPropagation();
     event.preventDefault();
-    save(SaveOptions.BACKGROUND);
     if (event.clientX - element.getBoundingClientRect().left - element.clientLeft > element.clientWidth - 40) {
       openContextMenu(element);
     } else {
@@ -625,7 +620,6 @@ function handleClick(event) {
       if (jsaction) {
         event.stopPropagation();
         event.preventDefault();
-        save(SaveOptions.BACKGROUND);
         handleJsaction(jsaction, element, event);
         return;
       }
@@ -635,13 +629,13 @@ function handleClick(event) {
 };
 
 function setName(name) {
-  var changed = name != currentProgramName;
-  currentProgramName = name;
+  var changed = name != current.name;
+  current.name = name;
   var title = name;
   var unnamed = name == 'Unnamed';
   document.title = unnamed ? 'Tidej' : ('Tidej: ' + title);
   document.getElementById('title').innerHTML = (unnamed ? 'Tidej' :
-    (modal.htmlEscape(title) + (currentSecret == null ? ' <i class="fa fa-lock"></i>' : '')));
+    (modal.htmlEscape(title) + (current.secret == null ? ' <i class="fa fa-lock"></i>' : '')));
   var programNameElement = document.body.querySelector('tj-program-name');
   if (programNameElement == null) {
     programElement = document.body.querySelector('tj-program');
@@ -649,7 +643,7 @@ function setName(name) {
     programElement.insertBefore(programNameElement, programElement.firstChild);
   }
   programNameElement.textContent = name;
-  updateProgramList();
+  saveProgramList();
 }
 
 // Event handlers
