@@ -86,7 +86,7 @@ tidejRunner.tryStorage = tidejRunner.params.secret == null;
 if (!tidejRunner.tryStorage) {
   tidejRunner.lastSavedText = localStorage.getItem("lastSaved");
   if (tidejRunner.lastSavedText != null) {
-    tidejRunner.lastSaved = JSON.parse(lastSavedText);
+    tidejRunner.lastSaved = JSON.parse(tidejRunner.lastSavedText);
     tidejRunner.tryStorage = tidejRunner.lastSaved.id == tidejRunner.params.id &&
       (Date.now() - tidejRunner.lastSaved.timeStamp) < 10000;
   }

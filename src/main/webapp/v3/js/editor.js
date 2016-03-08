@@ -341,8 +341,14 @@ function handleJsaction(name, element, event) {
 
     case 'run':
       save();
-      window.location = "run.html#id=" + modal.htmlEscape(current.id) +
-        (current.secret == null ? "" : (";secret=" + modal.htmlEscape(current.secret)));
+      var url = 'run.html';
+      if (current.id != null) {
+        url += '#id=' + modal.htmlEscape(current.id);
+        if (current.secret != null) {
+          url += ";secret=" + modal.htmlEscape(current.secret);
+        }
+      }
+      window.location = url;
       break;
   }  
 }
@@ -350,8 +356,8 @@ function handleJsaction(name, element, event) {
 function setProgram(content) {
   var programElement = document.getElementById("program");
   programElement.innerHTML = content;
-  currentProgram = programElement.innerHTML;
-  currentProgramDirty = false;
+  currentContent = programElement.innerHTML;
+  currentContentDirty = false;
 
   var programNameElement = programElement.querySelector("tj-program-name");
   setName(programNameElement == null ? "" + current.id : programNameElement.textContent);
