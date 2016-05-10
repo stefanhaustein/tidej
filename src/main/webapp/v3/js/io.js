@@ -1,7 +1,7 @@
 var io = {};
 
 io.parseParams = function(s) {
-    var parts = s.split(';');
+    var parts = s.trim().split(';');  // Trim is important here!
 	var result = {};
 	for (var i = 0; i < parts.length; i++) {
 		var part = parts[i];

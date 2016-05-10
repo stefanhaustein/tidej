@@ -301,7 +301,10 @@ function handleJsaction(name, element, event) {
     case 'delete':
       modal.confirm('Delete program "' + modal.htmlEscape(current.name) + '"?', function(ok) {
         if (ok) {
+          window.console.log("program list before delete ", programList);
+          window.console.log("deleting ", current.id);
           delete programList[current.id];
+          window.console.log("program list after delete ", programList);
           current = {};
           saveProgramList();
           localStorage.setItem("lastHash", "");
@@ -532,6 +535,7 @@ function save(callback, publish) {
       window.onhashchange = null;
       location.replace(newHash);
       window.onhashchange = load;
+      window.alert("Fork created with id " + oldCurrent.id);
     }
     saveProgramList();
     if (callback != null) {

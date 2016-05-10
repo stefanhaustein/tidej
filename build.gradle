@@ -33,4 +33,5 @@ appengine {
   appcfg {
     oauth2 = true
   }
+  jvmFlags = ['-Ddatastore.backing_store="/home/haustein/LocalDataStore/tidej.bin"']
 }
