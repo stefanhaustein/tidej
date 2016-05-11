@@ -515,6 +515,7 @@ function save(callback, publish) {
   }
 
   var oldCurrent = current;
+  var oldId = current.id;
   var oldHash = window.location.hash;
   if (callback != null) {
     modal.showDeferred("Saving...");
@@ -535,11 +536,14 @@ function save(callback, publish) {
       window.onhashchange = null;
       location.replace(newHash);
       window.onhashchange = load;
-      window.alert("Fork created with id " + oldCurrent.id);
     }
     saveProgramList();
     if (callback != null) {
       modal.hide();
+    }
+    if (oldCurrent.id != oldId) {
+      modal.alert("Project forked to id: " + oldCurrent.id, callback);
+    } else if (callback != null) {
       callback();
     }
   });
