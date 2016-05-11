@@ -518,6 +518,9 @@ function save(callback, publish) {
   var oldId = current.id;
   var oldHash = window.location.hash;
   if (callback != null) {
+    // TODO(haustein): Document why we show this only when the callback is != null
+    // (avoid distractions on background saving?) and determine if we should limit
+    // the fork warning accordingly, too
     modal.showDeferred("Saving...");
   }
   io.saveContent(getCurrentContent(), {
