@@ -9,19 +9,24 @@ var currentError = null;
 var currentContent = null;
 var currentContentDirty = false;
 
+// Transitional
 var programListText = localStorage.getItem('programList');
+
+/**
+ * Map from id to names
+ */
 var programList = programListText == null ? {} : JSON.parse(programListText);
 
-var savedContent = {dev: null, local: null, pub: null};
-
-var widgets = []
-
-var SaveOptions = {
-  FORCE: 1,
-  PUBLISH: 2,
-  BACKGROUND: 4
+/**
+ * Keeps track of what already has been saved (to avoid redundant IO)
+ */
+var savedContent = {
+  dev: null,     // Saved development code
+  local: null,   // Saved local code
+  pub: null      // Published code
 };
 
+var widgets = [];
 
 var EMPTY_CLASS_INNER =
   "<tj-class-name></tj-class-name><tj-class-body><tj-operation>" +
@@ -477,9 +482,15 @@ function openMenu(id) {
   }
 }
 
-// Setting a callback forces remote saving
+/**
+ * Setting a callback forces remote saving
+ */
 function save(callback, publish) {
+
+  // First, save locally in any case if there is a difference.
   if (getCurrentContent() != savedContent.local) {
+
+    // If this is a recent fork, create a new local id.
     if (current.id == current.forkedFrom) {
       current.id = generateId();
       if (current.forkedFrom != null) {
@@ -491,6 +502,8 @@ function save(callback, publish) {
       localStorage.setItem("lastHash", window.location.hash)
       window.onhashchange = load;
     }
+
+    // Save to local storage.
     localStorage.setItem("program-" + current.id, getCurrentContent());
     savedContent.local = getCurrentContent();
   }
@@ -544,8 +557,8 @@ function save(callback, publish) {
     if (callback != null) {
       modal.hide();
     }
-    if (oldCurrent.id != oldId) {
-      modal.alert("Project forked to id: " + oldCurrent.id, callback);
+    if (oldCurrent.id != oldId && !oldId.startsWith("local-")) {
+      modal.alert("Project forked to id: '" + oldCurrent.id + "'", callback);
     } else if (callback != null) {
       callback();
     }
